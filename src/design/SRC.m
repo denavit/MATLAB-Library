@@ -154,8 +154,8 @@ classdef SRC < structural_shape
 
         %% Geometric Properties
         function area = As(obj)
-            area = sectionProperties('A','IShape',...
-                obj.d,obj.tw,obj.bf,obj.tf);
+            shape = I_Shape(obj.d,obj.tw,obj.bf,obj.tf);
+            area = shape.A;
         end
         function area = Asr(obj)
             [~,~,A] = obj.rebarData;
@@ -168,16 +168,8 @@ classdef SRC < structural_shape
             area = obj.H*obj.B;
         end
         function inertia = Is(obj,axis)
-            switch lower(axis)
-                case 'strong'
-                    inertia = sectionProperties('Iz','IShape',...
-                        obj.d,obj.tw,obj.bf,obj.tf);
-                case 'weak'
-                    inertia = sectionProperties('Iy','IShape',...
-                        obj.d,obj.tw,obj.bf,obj.tf);
-                otherwise
-                    error('Bad axis');
-            end
+            shape = I_Shape(obj.d,obj.tw,obj.bf,obj.tf);
+            inertia = shape.I(axis);
         end
         function inertia = Isr(obj,axis)
             switch lower(axis)
@@ -314,10 +306,8 @@ classdef SRC < structural_shape
             switch obj.option_EI
                 case 'AISC2010'
                     C1 = min(0.3,0.1+2*(obj.As/(obj.Ac+obj.As)));
-                case 'Proposed'
-                    % C1 = min(0.75,0.6+2*(obj.As/obj.Ag));
+                case 'AISC2016'
                     C1 = min(0.7,0.25+3*(obj.As+obj.Asr)/obj.Ag);
-                    % C1 = min(0.7,0.4+2*(obj.As+obj.Asr)/obj.Ag);
                 otherwise
                     error('Unknown option_EI: %s',obj.option_EI);
             end
@@ -327,7 +317,7 @@ classdef SRC < structural_shape
                 case 'AISC2010'
                     eieff = obj.Es*obj.Is(axis) + 0.5*obj.Eslr*obj.Isr(axis) + ...
                         obj.C1*obj.Ec*obj.Ic(axis);
-                case 'Proposed'
+                case 'AISC2016'
                     eieff = obj.Es*obj.Is(axis) + obj.Eslr*obj.Isr(axis) + ...
                         obj.C1*obj.Ec*obj.Ic(axis);
                 otherwise
@@ -336,19 +326,12 @@ classdef SRC < structural_shape
         end
         function x = stabilityReduction(obj,axis,Po)
             % Stability Reduction
-            switch lower(axis)
-                case 'strong'
-                    K = obj.Kstrong;
-                case 'weak'
-                    K = obj.Kweak;
-                case 'min'
-                    x = min([obj.stabilityReduction('strong',Po) ...
-                        obj.stabilityReduction('weak',Po)]);
-                    return
-                otherwise
-                    error('Bad axis');
+            if strcmpi(axis,'min')
+                x = min([obj.stabilityReduction('strong',Po) ...
+                    obj.stabilityReduction('weak',Po)]);
+                return
             end
-            Pe = pi^2*obj.EIeff(axis)/(K*obj.L)^2;
+            Pe = pi^2*obj.EIeff(axis)/(obj.K(axis)*obj.L(axis))^2;
             x = AISC_column_curve(Po/Pe);
         end
         function pn = Pnc(obj,axis)
