@@ -543,7 +543,14 @@ end
 function definition = parseSteelMaterialType(definition,options)
 if isfield(options,'SteelMaterialType')
     type = options.SteelMaterialType;
-    definition = sprintf('%s -SteelMaterialType %s',definition,type);
+    switch type
+        case 'ModifiedAbdelRahman'
+            definition = sprintf('%s -SteelMaterialType %s %g %g',definition,type,...
+                options.AbdelRahmanResidualStressParameter,...
+                options.AbdelRahmanHardeningRatio);
+        otherwise
+            definition = sprintf('%s -SteelMaterialType %s',definition,type);
+    end
 end
 end
 
