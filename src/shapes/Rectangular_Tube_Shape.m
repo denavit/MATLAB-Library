@@ -26,7 +26,7 @@ classdef Rectangular_Tube_Shape
             tf = all([tf1 tf2 tf3 tf4 tf5 tf6]);
         end
         function ri = ri(obj)
-            ri = min(0,obj.ro-obj.t);
+            ri = max(0,obj.ro-obj.t);
         end
         function a = A(obj)
             recto = Rectangle_Shape(obj.H,obj.B,obj.ro);
