@@ -887,6 +887,30 @@ classdef RCFT < structural_shape
         function tf = hasReinforcement()
             tf = false;
         end
+        function t = t_given_rho(rho,H,B,ri)
+            if nargin < 4
+                % ri = t;
+                t0 = H*B*rho/(2*H+2*B);
+
+                options = struct;
+                options.Display = 'off';
+                [t,~,exitflag] = fsolve(@(x)t_given_rho_err(H,B,x)-rho,t0,options);
+                if exitflag <= 0
+                    warning('fsolve could not find solution');
+                    t = NaN;
+                end
+            else
+                error('Not yet implemented')
+            end
+        end        
     end
 
+end
+
+
+function r = t_given_rho_err(H,B,t)
+    Ag = H*B-(4-pi)*4*t^2;
+    Ac = (H-2*t)*(B-2*t)-(4-pi)*t^2;
+    As = Ag-Ac;
+    r = As/Ag;
 end

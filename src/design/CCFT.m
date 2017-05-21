@@ -668,6 +668,9 @@ classdef CCFT < structural_shape
         function tf = hasReinforcement()
             tf = false;
         end
+        function t = t_given_rho(rho,D)
+            t = (1-sqrt(1-rho))*D/2;
+        end
     end
 
 end
