@@ -104,7 +104,7 @@ classdef RCFT < structural_shape
             i = shp.I(axis);
         end
         function i = Ic(obj,axis)
-            shp = Rectangle_Shape(obj.H-2*obj.t,obj.B-2*obj.t,obj.ri);
+            shp = Rectangle_Shape(obj.Hc,obj.Bc,obj.ri);
             i = shp.I(axis);
         end
         function i = Ig(obj,axis)
@@ -349,11 +349,15 @@ classdef RCFT < structural_shape
         end
         function pn = Pnc_steel(obj,axis)
             % Compressive strength of the steel section only
-            % @todo - ri
-            steelSection = recthssaisc2010(obj.H,obj.B,obj.t,obj.Fy,obj.units,obj.L,obj.Kstrong,obj.Kweak);
+            steelSection = RectangularHSS(obj.H,obj.B,obj.t,obj.Fy,obj.units);
+            steelSection.ri = obj.ri;
+            steelSection.Lx = obj.Lx;
+            steelSection.Ly = obj.Ly;
+            steelSection.Kx = obj.Kx;
+            steelSection.Ky = obj.Ky;
             steelSection.Fu = obj.Fu;
             steelSection.Es = obj.Es;
-            steelSection.vs = obj.vs;
+            %steelSection.vs = obj.vs;
             steelSection.neglectLocalBuckling = obj.neglectLocalBuckling;
             pn = steelSection.Pnc(axis);
         end        
