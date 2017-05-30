@@ -743,6 +743,92 @@ classdef RCFT < structural_shape
                     error('Unknown type');
             end
         end
+        function strain = longitudinalStrain3d(obj,axialStrain,curvatureY,curvatureZ,type)
+            assert(isequal(size(axialStrain),size(curvatureY),size(curvatureZ)),...
+                'axialStrain and curvature should be the same size');
+            
+            z = obj.B/2 - obj.ro;
+            y = obj.H/2;
+            strain_s1a = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_s2a = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_s3a = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_s4a = axialStrain - z*curvatureY + y*curvatureZ;
+            
+            z = obj.B/2 - (1-1/sqrt(2))*obj.ro;
+            y = obj.H/2 - (1-1/sqrt(2))*obj.ro;
+            strain_s1b = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_s2b = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_s3b = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_s4b = axialStrain - z*curvatureY + y*curvatureZ;
+            
+            z = obj.B/2;
+            y = obj.H/2 - obj.ro;
+            strain_s1c = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_s2c = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_s3c = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_s4c = axialStrain - z*curvatureY + y*curvatureZ;            
+            
+            z = obj.Bc/2 - obj.ri;
+            y = obj.Hc/2;
+            strain_c1a = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_c2a = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_c3a = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_c4a = axialStrain - z*curvatureY + y*curvatureZ;
+            
+            z = obj.Bc/2 - (1-1/sqrt(2))*obj.ri;
+            y = obj.Hc/2 - (1-1/sqrt(2))*obj.ri;
+            strain_c1b = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_c2b = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_c3b = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_c4b = axialStrain - z*curvatureY + y*curvatureZ;
+            
+            z = obj.Bc/2;
+            y = obj.Hc/2 - obj.ri;
+            strain_c1c = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_c2c = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_c3c = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_c4c = axialStrain - z*curvatureY + y*curvatureZ;           
+            
+            switch lower(type)
+                case 'maxcompressive'
+                    strain = min([...
+                        strain_s1a(:) strain_s2a(:) strain_s3a(:) strain_s4a(:) ...
+                        strain_s1b(:) strain_s2b(:) strain_s3b(:) strain_s4b(:) ...
+                        strain_s1c(:) strain_s2c(:) strain_s3c(:) strain_s4c(:) ...
+                        ],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxtensile'
+                    strain = max([...
+                        strain_s1a(:) strain_s2a(:) strain_s3a(:) strain_s4a(:) ...
+                        strain_s1b(:) strain_s2b(:) strain_s3b(:) strain_s4b(:) ...
+                        strain_s1c(:) strain_s2c(:) strain_s3c(:) strain_s4c(:) ...
+                        ],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxabsolute'
+                    strain = max(abs([...
+                        strain_s1a(:) strain_s2a(:) strain_s3a(:) strain_s4a(:) ...
+                        strain_s1b(:) strain_s2b(:) strain_s3b(:) strain_s4b(:) ...
+                        strain_s1c(:) strain_s2c(:) strain_s3c(:) strain_s4c(:) ...
+                        ]),[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxconcretecompressive'
+                    strain = min([...
+                        strain_c1a(:) strain_c2a(:) strain_c3a(:) strain_c4a(:) ...
+                        strain_c1b(:) strain_c2b(:) strain_c3b(:) strain_c4b(:) ...
+                        strain_c1c(:) strain_c2c(:) strain_c3c(:) strain_c4c(:) ...
+                        ],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxconcretetensile'
+                    strain = max([...
+                        strain_c1a(:) strain_c2a(:) strain_c3a(:) strain_c4a(:) ...
+                        strain_c1b(:) strain_c2b(:) strain_c3b(:) strain_c4b(:) ...
+                        strain_c1c(:) strain_c2c(:) strain_c3c(:) strain_c4c(:) ...
+                        ],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                otherwise
+                    error('Unknown type: %s',type);
+            end
+        end
         function x = getSectionData(obj,type,axis)
             switch lower(type)
                 case 'steelarea'

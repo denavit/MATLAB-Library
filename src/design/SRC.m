@@ -763,6 +763,37 @@ classdef SRC < structural_shape
                     error('Unknown type');
             end
         end
+        function strain = longitudinalStrain3d(obj,axialStrain,curvatureY,curvatureZ,type)
+            assert(isequal(size(axialStrain),size(curvatureY),size(curvatureZ)),...
+                'axialStrain and curvature should be the same size');
+            
+            z =  obj.B/2;
+            y =  obj.H/2;
+            strain_c1 = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_c2 = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_c3 = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_c4 = axialStrain - z*curvatureY + y*curvatureZ;
+            
+            switch lower(type)
+                case 'maxcompressive'
+                    strain = min([strain_c1(:) strain_c2(:) strain_c3(:) strain_c4(:)],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxtensile'
+                    strain = max([strain_c1(:) strain_c2(:) strain_c3(:) strain_c4(:)],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxabsolute'
+                    strain = max(abs([strain_c1(:) strain_c2(:) strain_c3(:) strain_c4(:)]),[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxconcretecompressive'
+                    strain = min([strain_c1(:) strain_c2(:) strain_c3(:) strain_c4(:)],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxconcretetensile'
+                    strain = max([strain_c1(:) strain_c2(:) strain_c3(:) strain_c4(:)],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                otherwise
+                    error('Unknown type: %s',type);
+            end
+        end               
         function x = getSectionData(obj,type,axis)
             switch lower(type)
                 case 'steelarea'
