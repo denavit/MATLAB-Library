@@ -585,9 +585,7 @@ classdef RCFT < structural_shape
                         otherwise
                             error('Bad axis');
                     end 
-                    phi = 0.65+(et-0.002)*250/3;
-                    phi = max(0.65,phi);
-                    phi = min(0.9,phi);
+                    phi = ACI_phi('other',et,obj.Fy/obj.Es);
                     P = phi.*P;
                     M = phi.*M;
                 case 'varma'
