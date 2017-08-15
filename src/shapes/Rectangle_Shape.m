@@ -4,6 +4,8 @@ classdef Rectangle_Shape < geometric_shape
         H
         B
         r = 0;
+        
+        plot_fill_color = [0.90 0.90 0.90];
     end
     
     methods
@@ -78,7 +80,40 @@ classdef Rectangle_Shape < geometric_shape
                 otherwise
                     error('Bad axis');
             end
-        end        
+        end
+        function [x,y,r] = boundary_points(obj)
+            if obj.r == 0
+                x = [ obj.B/2 -obj.B/2 -obj.B/2  obj.B/2 ];
+                y = [ obj.H/2  obj.H/2 -obj.H/2 -obj.H/2 ];
+                r = [0 0 0 0];
+            else            
+                error('Not yet impletmented')
+            end
+        end
+        function plotSection(obj,lineWidth)
+            if nargin < 2
+                lineWidth = 2;
+            end
+            hold all
+            if obj.r == 0
+                x = [ obj.B/2 -obj.B/2 -obj.B/2  obj.B/2 obj.B/2 ];
+                y = [ obj.H/2  obj.H/2 -obj.H/2 -obj.H/2 obj.H/2 ];
+            else
+                angles = linspace(0,pi/2,25);
+                x = [ ( obj.B/2+obj.r*cos(angles)) ...
+                      (-obj.B/2+obj.r*cos(angles+pi/2)) ...
+                      (-obj.B/2+obj.r*cos(angles+pi)) ...
+                      ( obj.B/2+obj.r*cos(angles+1.5*pi)) obj.B/2+obj.r ];
+                y = [ ( obj.H/2+obj.r*sin(angles)) ...
+                      ( obj.H/2+obj.r*sin(angles+pi/2)) ...
+                      (-obj.H/2+obj.r*sin(angles+pi)) ...
+                      (-obj.H/2+obj.r*sin(angles+1.5*pi)) obj.H/2 ]; 
+                 
+            end
+            fill(x,y,obj.plot_fill_color,'LineStyle','none')
+            plot(x,y,'k-','LineWidth',lineWidth);
+            axis equal
+        end         
     end
     
 end
