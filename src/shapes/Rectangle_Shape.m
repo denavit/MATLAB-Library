@@ -1,4 +1,4 @@
-classdef Rectangle_Shape
+classdef Rectangle_Shape < geometric_shape
         
     properties
         H

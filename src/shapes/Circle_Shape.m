@@ -1,4 +1,4 @@
-classdef Circle_Shape
+classdef Circle_Shape < geometric_shape
         
     properties
         D

@@ -1,4 +1,4 @@
-classdef Circular_Tube_Shape
+classdef Circular_Tube_Shape < geometric_shape
         
     properties
         D

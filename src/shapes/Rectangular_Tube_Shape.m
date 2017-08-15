@@ -1,4 +1,4 @@
-classdef Rectangular_Tube_Shape
+classdef Rectangular_Tube_Shape < geometric_shape
         
     properties
         H
