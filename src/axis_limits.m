@@ -109,7 +109,7 @@ if isempty(h)
 end
 for i = 1:length(h)
     switch get(h(i),'Type')
-        case {'line','hggroup'}
+        case {'line','hggroup','scatter'}
             xdata = get(h(i),'XData');
             ydata = get(h(i),'YData');
             xmax = max(xmax,max(xdata));
