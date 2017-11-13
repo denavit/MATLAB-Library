@@ -425,16 +425,16 @@ classdef CCFT < structural_shape
                     phi = ACI_phi('other',et,obj.Fy/obj.Es);
                     P = phi.*P;
                     M = phi.*M;
-                case 'varma'
+                case {'i51','i5.1'}
                     assert(any(strcmpi(quadrant,{'cp','comppos','compressionpositive'})),...
                         'Unknown quadrant');
-                    [cp,cm] = obj.VarmaParameters;
+                    [cp,cm] = obj.I51Parameters;
                     P = -[1 cp 0]'*obj.Pnco;
                     M =  [0 cm 1]'*obj.Mno(axis);
-                case  'factoredvarma'
+                case {'factoredi51','factoredi5.1'}
                     assert(any(strcmpi(quadrant,{'cp','comppos','compressionpositive'})),...
                         'Unknown quadrant');
-                    [cp,cm] = obj.VarmaParameters;
+                    [cp,cm] = obj.I51Parameters;
                     P = -[1 cp 0]'*0.75*obj.Pnco;
                     M =  [0 cm 1]'*0.9*obj.Mno(axis);
                 otherwise
@@ -468,16 +468,16 @@ classdef CCFT < structural_shape
                     [P,M] = obj.sectionInteraction2d(axis,'ACI',quadrant);
                 case 'factoredaci'
                     [P,M] = obj.sectionInteraction2d(axis,'FactoredACI',quadrant);                    
-                case 'varma'
+                case {'i51','i5.1'}
                     assert(any(strcmpi(quadrant,{'cp','comppos','compressionpositive'})),...
                         'Unknown quadrant');
-                    [cp,cm] = obj.VarmaParameters;
+                    [cp,cm] = obj.I51Parameters;
                     P = -[1 cp 0]'*obj.Pnc(axis);
                     M =  [0 cm 1]'*obj.Mn(axis);
-                case  'factoredvarma'
+                case {'factoredi51','factoredi5.1'}
                     assert(any(strcmpi(quadrant,{'cp','comppos','compressionpositive'})),...
                         'Unknown quadrant');
-                    [cp,cm] = obj.VarmaParameters;
+                    [cp,cm] = obj.I51Parameters;
                     P = -[1 cp 0]'*0.75*obj.Pnc(axis);
                     M =  [0 cm 1]'*0.9*obj.Mn(axis);                    
                 case 'proposed'
@@ -488,7 +488,7 @@ classdef CCFT < structural_shape
                     error('Unknown type: %s',type);
             end
         end
-        function [cp,cm] = VarmaParameters(obj)
+        function [cp,cm] = I51Parameters(obj)
             csr = (obj.As*obj.Fy)/(obj.Ac*obj.fc);
             cp = 0.27*csr^-0.4;
             if csr >= 0.5
