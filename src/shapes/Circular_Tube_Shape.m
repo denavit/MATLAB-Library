@@ -17,16 +17,29 @@ classdef Circular_Tube_Shape < geometric_shape
             tf = all([tf1 tf2 tf3]);
         end
         function a = A(obj)
-            circo = Circle_Shape(obj.D);
-            circi = Circle_Shape(obj.D-2*obj.t);
-            a = circo.A - circi.A;
+            ro = obj.D/2;
+            ri = ro-obj.t;
+            a = pi*(ro^2-ri^2);
         end
         function i = I(obj,axis)
-            circo = Circle_Shape(obj.D);
-            circi = Circle_Shape(obj.D-2*obj.t);
-            i = circo.I(axis) - circi.I(axis);
-        end       
-    end
-    
+            ro = obj.D/2;
+            ri = ro-obj.t;
+            i = pi/4*(ro^4-ri^4);
+        end
+        function s = S(obj,axis)
+            ro = obj.D/2;
+            ri = ro-obj.t;
+            s = pi/4*(ro^4-ri^4)/ro;
+        end
+        function j = J(obj)
+            ro = obj.D/2;
+            ri = ro-obj.t;
+            j = pi/2*(ro^4-ri^4);
+        end
+        function z = Z(obj,axis)
+            do = obj.D;
+            di = do-2*obj.t;
+            z = (do^3-di^3)/6;
+        end
+    end 
 end
-
