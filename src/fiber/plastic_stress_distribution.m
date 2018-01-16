@@ -98,7 +98,84 @@ classdef plastic_stress_distribution < handle
                 Mz(:,i) = iMz;
                 My(:,i) = iMy;
             end
-        end        
+        end
+        function results = interaction3d_2(obj,numP,numAngles,numPoints_calc,numAngles_calc)
+            
+            if nargin < 4
+                numPoints_calc = 50;
+            end
+            if nargin < 5
+                numAngles_calc = 2*numAngles;
+            end
+            
+            angles_calc = linspace(0,2*pi,numAngles_calc+1);
+            
+            Mz_calc = nan(numP,numAngles_calc);
+            My_calc = nan(numP,numAngles_calc);             
+                        
+            [~,~,z,y] = obj.fiberSection.fiberData(obj.AxesOrigin);
+            for i = 1:numAngles_calc
+                dist = [-sin(angles_calc(i)) cos(angles_calc(i))]*[z y]';
+                maxDist     = max(dist);
+                minDist     = min(dist);
+                points      = linspace(minDist,maxDist,numPoints_calc);
+                points(1)   = points(1)-1.0e-6*(maxDist-minDist);
+                points(end) = points(end)+1.0e-6*(maxDist-minDist);
+                
+                iP  = nan(numPoints_calc,1);
+                iMz = nan(numPoints_calc,1);
+                iMy = nan(numPoints_calc,1);
+                for j = 1:numPoints_calc
+                    zPoint = -sin(angles_calc(i))*points(j);
+                    yPoint =  cos(angles_calc(i))*points(j);
+                    
+                    [jP,jMz,jMy] = computePoint(obj,zPoint,yPoint,angles_calc(i));
+                    iP(j)  = jP;
+                    iMz(j) = jMz;
+                    iMy(j) = jMy;
+                end
+                
+                if i == 1
+                    P_max  = iP(1);
+                    Mz_max = iMz(1);
+                    My_max = iMy(1);
+                    P_min  = iP(end);
+                    Mz_min = iMz(end);
+                    My_min = iMy(end);
+                    P = linspace(P_min,P_max,numP);
+                end
+                
+                for j = 1:numP
+                    [ind,x] = find_limit_point_in_vector(iP,P(j));
+                    Mz_calc(j,i) = interpolate_vector(iMz,ind,x);
+                    My_calc(j,i) = interpolate_vector(iMy,ind,x);
+                end
+            end
+
+            results = struct;
+            results.P  = nan(numP,numAngles);
+            results.Mz = nan(numP,numAngles);
+            results.My = nan(numP,numAngles);
+            angles = linspace(0,2*pi,numAngles+1);
+            angles = angles(1:(end-1));
+            for i = 1:numP
+                if i == 1
+                    results.P(i,:)  = P_min;
+                    results.Mz(i,:) = Mz_min;
+                    results.My(i,:) = My_min;
+                elseif i == numP
+                    results.P(i,:)  = P_max;
+                    results.Mz(i,:) = Mz_max;
+                    results.My(i,:) = My_max;
+                else
+                    id = interactionDiagram2d(Mz_calc(i,:),My_calc(i,:));
+                    d = id.radial_distance(angles);
+                    results.P(i,:)  = P(i);
+                    results.Mz(i,:) = d.*cos(angles);
+                    results.My(i,:) = d.*sin(angles);
+                end
+            end
+        end
     end
 end
 
