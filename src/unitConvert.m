@@ -76,6 +76,7 @@ pressure_base2ksi = 1;
 pressure_base2kPa = 6.89476e3;
 pressure_base2MPa = 6.89476;
 pressure_base2GPa = 6.89476e-3;
+pressure_base2kNscm = 6.89476e-1;
 pressure_base2kgscm = 70.306986;
 pressure_base2tscm = 0.070306986;
 pressure_base2ltsi = 1/2.24;
@@ -245,6 +246,7 @@ switch lower(type)
             case 'kpa';     toBase = 1/pressure_base2kPa;
             case 'mpa';     toBase = 1/pressure_base2MPa;
             case 'gpa';     toBase = 1/pressure_base2GPa;
+            case 'kn/cm^2'; toBase = 1/pressure_base2kNscm;
             case 'kgscm';   toBase = 1/pressure_base2kgscm;
             case {'tscm','metricton/cm^2'}
                             toBase = 1/pressure_base2tscm;
@@ -261,6 +263,7 @@ switch lower(type)
             case 'kpa';     fromBase = pressure_base2kPa;
             case 'mpa';     fromBase = pressure_base2MPa;
             case 'gpa';     fromBase = pressure_base2GPa;
+            case 'kn/cm^2'; fromBase = pressure_base2kNscm;
             case 'kgscm';   fromBase = pressure_base2kgscm;
             case {'tscm','metricton/cm^2'};
                             fromBase = pressure_base2tscm;
