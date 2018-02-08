@@ -134,11 +134,13 @@ switch lower(type)
         switch lower(oldUnit)
             case '1/in';    toBase = length_base2in;
             case '1/mm';    toBase = length_base2mm;
+            case '1/m';     toBase = length_base2m;
             otherwise;      error('old %s unit not recgonized: %s',type,oldUnit);
         end
         switch lower(newUnit)
             case '1/in';    fromBase = 1/length_base2in;
             case '1/mm';    fromBase = 1/length_base2mm;
+            case '1/m';     fromBase = 1/length_base2m;
             otherwise;      error('new %s unit not recgonized: %s',type,newUnit);
         end
         
