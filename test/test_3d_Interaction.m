@@ -15,31 +15,39 @@ units   = 'US';
 section = RCFT(H,B,t,Fy,fc,units);
 section.neglectLocalBuckling = true;
 
+psd  = section.plasticStressDistributionObject;
+aci  = section.strainCompatibilityAciObject;
 
-%% Compute Interaction
+%% Compute and Plot Two-Dimensional Interaction
+
 [P_points,M_points] = section.sectionInteraction2d('strong','psd-acdbt','CompPos');
 
-psd  = section.plasticStressDistributionObject;
-% angle = 0;
-% numPoints = 50;
-%[P_cont,M_cont,~] = psd.interactionSweep(angle,numPoints);
-% numAngles = 12;
-% [P,Mz,My] = psd.interaction3d(numPoints,numAngles);
+angle = 0;
+numPoints = 50;
+[P_cont,M_cont,~] = psd.interactionSweep(angle,numPoints);
+[P_aci,M_aci,~]   = aci.interactionSweep(angle,numPoints);
 
+hf = fs.figure(8,6);
+ha = fs.axes();
+
+plot(M_points/12,-P_points,'o--')
+plot(M_cont/12,-P_cont)
+plot(M_aci/12,-P_aci)
+xlabel('Bending moment, M (kip-ft)')
+zlabel('Axial compression, P (kips)')
+
+xlim([0 320])
+ylim([0 1500])
+
+legend('PSD (discrete)','PSD (continuous)','ACI')
+
+%% Compute and Plot Three-Dimensional Interaction 
 numP        = 50;
 numAngles   = 200;
 numPoints_calc = 50;
 numAngles_calc = 100;
-results = psd.interaction3d_2(numP,numAngles,numPoints_calc,numAngles_calc);
+results = aci.interaction3d_2(numP,numAngles,numPoints_calc,numAngles_calc);
 
-
-% aci  = section.strainCompatibilityAciObject;
-% angle = 0;
-% numPoints = 50;
-% [P_aci,M_aci,~] = aci.interactionSweep(angle,numPoints);
-
-
-%% Plot
 hf = fs.figure(8,6);
 ha = fs.axes();
 
