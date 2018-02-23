@@ -252,6 +252,9 @@ classdef SectionAnalysis < OpenSeesAnalysis
             fclose(fid);
 
             % Run OpenSees
+            if exist(filename_output_eigen,'file')
+                delete(filename_output_eigen)
+            end
             [status, result] = obj.runOpenSees(filename_input);
             
             results = struct;
@@ -385,12 +388,13 @@ classdef SectionAnalysis < OpenSeesAnalysis
                 fprintf(myFile, '%s\n',obj.section_def{i});
             end
             fprintf(myFile, 'element truss 1 1 2 1.0 %i \n',matID);
-            fprintf(myFile, ['pattern Plain 1 "Series -dt 1.0 -filePath ' filename_disp ' -factor 1.0" { \n']);
+            fprintf(myFile, 'timeSeries Path 1 -dt 1.0 -filePath %s \n',OpenSeesAnalysis.path_for_tcl(filename_disp));
+            fprintf(myFile, 'pattern Plain 1 1 { \n');
             fprintf(myFile, '    sp 2 1 1.0 \n');
             fprintf(myFile, '} \n');
-            fprintf(myFile, 'recorder Element -file %s -ele 1  force \n',filename_output_force);
-            fprintf(myFile, 'recorder Node    -file %s -node 2 -dof 1 disp \n',filename_output_def);
-            fprintf(myFile, 'recorder Element -file %s -ele 1  stiff \n',filename_output_stiff);
+            fprintf(myFile, 'recorder Element -file %s -ele 1  force \n',OpenSeesAnalysis.path_for_tcl(filename_output_force));
+            fprintf(myFile, 'recorder Node    -file %s -node 2 -dof 1 disp \n',OpenSeesAnalysis.path_for_tcl(filename_output_def));
+            fprintf(myFile, 'recorder Element -file %s -ele 1  stiff \n',OpenSeesAnalysis.path_for_tcl(filename_output_stiff));
             fprintf(myFile, 'system UmfPack \n');
             fprintf(myFile, 'constraints Penalty 1.0e12 1.0e12 \n');
             fprintf(myFile, 'test NormDispIncr 1.0e-8 10 0 \n');
