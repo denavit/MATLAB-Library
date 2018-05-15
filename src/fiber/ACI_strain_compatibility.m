@@ -148,10 +148,36 @@ classdef ACI_strain_compatibility < handle
                 P = max(P,obj.maxCompressiveStrength);
             end
         end      
+        function [P,Mz,My] = computePoint_uniform(obj,axial_strain)
+            mats = obj.fiberSection.matIDs;
+            [mat,A,z,y] = obj.fiberSection.fiberData(obj.AxesOrigin);
+            
+            strain = axial_strain*ones(size(mat));            
+            stress = nan(size(mat));
+            
+            for i = 1:length(mats)
+                % Find fibers of the material
+                ind = find(mat==mats(i));
+                
+                % Find the constitutive relation
+                iMat = find(obj.materialIDs==mats(i));
+                assert(isscalar(iMat),'cannot find constitutive relation for material %i',mats(i))
+                
+                % Compute stress
+                stress(ind) = obj.materials{iMat}.getStress(strain(ind));
+            end
+            P  = sum(stress.*A);
+            Mz = sum(stress.*A.*-y);
+            My = sum(stress.*A.*z);
+            
+            if ~isempty(obj.maxCompressiveStrength)
+                P = max(P,obj.maxCompressiveStrength);
+            end
+        end        
         function [P,Mz,My,et] = interactionSweep(obj,angle,numPoints)           
             [ymax,ymin] = obj.fiberSection.boundsAtAngle(angle,obj.AxesOrigin);
             d = ymax-ymin;
-            points = [ymin-10*d linspace(ymin-0.51*d,ymax+0.51*d,numPoints-2) ymax+10*d];
+            points = [-Inf linspace(ymin-0.51*d,ymax+0.51*d,numPoints-2) Inf];
             
             % Compute interaction
             P  = zeros(2*numPoints,1);
@@ -159,22 +185,41 @@ classdef ACI_strain_compatibility < handle
             My = zeros(2*numPoints,1);
             et = zeros(2*numPoints,1);
             for i = 1:numPoints
-                zPoint = -sin(angle)*points(i);
-                yPoint =  cos(angle)*points(i);
-                [iP,iMz,iMy] = computePoint(obj,zPoint,yPoint,angle);
+                if points(i) == Inf
+                    [iP,iMz,iMy] = computePoint_uniform(obj,obj.defaultTensileStrain);
+                    iet = obj.defaultTensileStrain;
+                elseif points(i) == -Inf
+                    [iP,iMz,iMy] = computePoint_uniform(obj,obj.strainAtExtremeConcreteFiber);
+                    iet = obj.strainAtExtremeConcreteFiber;
+                else
+                    zPoint = -sin(angle)*points(i);
+                    yPoint =  cos(angle)*points(i);
+                    [iP,iMz,iMy] = computePoint(obj,zPoint,yPoint,angle);
+                    iet = obj.extremeSteelTensileStrain(zPoint,yPoint,angle);
+                end
+                
                 P(i)  = iP;
                 Mz(i) = iMz;
                 My(i) = iMy;
-                et(i) = obj.extremeSteelTensileStrain(zPoint,yPoint,angle);
+                et(i) = iet; 
                 
-                zPoint = -sin(angle)*points(i);
-                yPoint =  cos(angle)*points(i);                
-                [iP,iMz,iMy] = computePoint(obj,zPoint,yPoint,angle+pi);
+                if points(i) == Inf
+                    [iP,iMz,iMy] = computePoint_uniform(obj,obj.strainAtExtremeConcreteFiber);
+                    iet = obj.strainAtExtremeConcreteFiber;
+                elseif points(i) == -Inf
+                    [iP,iMz,iMy] = computePoint_uniform(obj,obj.defaultTensileStrain);
+                    iet = obj.defaultTensileStrain;
+                else
+                    zPoint = -sin(angle)*points(i);
+                    yPoint =  cos(angle)*points(i);                
+                    [iP,iMz,iMy] = computePoint(obj,zPoint,yPoint,angle+pi);
+                    iet = obj.extremeSteelTensileStrain(zPoint,yPoint,angle+pi);
+                end                
+
                 P(numPoints+i)  = iP;
                 Mz(numPoints+i) = iMz;
                 My(numPoints+i) = iMy;
-                et(numPoints+i) = obj.extremeSteelTensileStrain(zPoint,yPoint,angle+pi);
-                
+                et(numPoints+i) = iet;
             end
             
             if ~isempty(obj.maxCompressiveStrength)
@@ -229,16 +274,21 @@ classdef ACI_strain_compatibility < handle
                 maxDist = max(dist);
                 minDist = min(dist);
                 d = maxDist-minDist;
-                points = [minDist-10*d linspace(minDist-0.51*d,maxDist+0.51*d,numPoints_calc-2) maxDist+10*d];
+                points = [-Inf linspace(minDist-0.51*d,maxDist+0.51*d,numPoints_calc-2) Inf];
                 
                 iP  = nan(numPoints_calc,1);
                 iMz = nan(numPoints_calc,1);
                 iMy = nan(numPoints_calc,1);
                 for j = 1:numPoints_calc
-                    zPoint = -sin(angles_calc(i))*points(j);
-                    yPoint =  cos(angles_calc(i))*points(j);
-                    
-                    [jP,jMz,jMy] = computePoint(obj,zPoint,yPoint,angles_calc(i));
+                    if points(j) == Inf
+                        [jP,jMz,jMy] = computePoint_uniform(obj,obj.defaultTensileStrain);
+                    elseif points(j) == -Inf
+                        [jP,jMz,jMy] = computePoint_uniform(obj,obj.strainAtExtremeConcreteFiber);
+                    else
+                        zPoint = -sin(angles_calc(i))*points(j);
+                        yPoint =  cos(angles_calc(i))*points(j);
+                        [jP,jMz,jMy] = computePoint(obj,zPoint,yPoint,angles_calc(i));
+                    end
                     iP(j)  = jP;
                     iMz(j) = jMz;
                     iMy(j) = jMy;
@@ -251,7 +301,7 @@ classdef ACI_strain_compatibility < handle
                     P_min  = iP(end);
                     Mz_min = iMz(end);
                     My_min = iMy(end);
-                    if isempty(obj.maxCompressiveStrength)
+                    if isempty(obj.maxCompressiveStrength) || obj.maxCompressiveStrength >= P_max
                         P = linspace(P_min,P_max,numP);
                     else
                         P = [linspace(P_min,0.99*P_max,numP-1) P_max];
