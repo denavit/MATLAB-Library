@@ -202,9 +202,9 @@ switch lower(type)
             newUnit = newUnit.momentUnits;
         end
         switch lower(oldUnit)
-            case {'kin','k-in'};     
+            case {'kin','k-in','kip-in'};     
                 toBase = 1/moment_base2kin;
-            case {'kft','k-ft'};     
+            case {'kft','k-ft','kip-ft'};
                 toBase = 1/moment_base2kft;
             case {'nmm','n-mm'};     
                 toBase = 1/moment_base2Nmm;
