@@ -186,9 +186,9 @@ classdef RCFT < structural_shape
             Mc = Mb;
         end
         function [Pd,Md] = pointD(obj,axis)
-            concrete_shape = Rectangle_Shape(obj.Bc,obj.Hc,obj.ri);
+            concrete_shape = Rectangle_Shape(obj.Hc,obj.Bc,obj.ri);
             Zc = concrete_shape.Z(axis);
-            steel_shape = Rectangular_Tube_Shape(obj.B,obj.H,obj.t,obj.ro);
+            steel_shape = Rectangular_Tube_Shape(obj.H,obj.B,obj.t,obj.ro);
             Zs = steel_shape.Z(axis);
             Pd = -(obj.C2*obj.fc*obj.Ac/2);
             Md = Zs*obj.Fy + 0.5*Zc*obj.C2*obj.fc;
