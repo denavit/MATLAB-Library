@@ -480,10 +480,10 @@ classdef CCFT < structural_shape
                     [cp,cm] = obj.I51Parameters;
                     P = -[1 cp 0]'*0.75*obj.Pnc(axis);
                     M =  [0 cm 1]'*0.9*obj.Mn(axis);                    
-                case 'proposed'
-                    [P,M] = proposedBeamColumnInteraction2d(obj,axis,quadrant,type(10:end),false);
-                case 'factoredproposed'
-                    [P,M] = proposedBeamColumnInteraction2d(obj,axis,quadrant,type(18:end),true);
+                case 'trial'
+                    [P,M] = trial_interaction_diagram(obj,axis,quadrant,type(7:end),false);
+                case 'factoredtrial'
+                    [P,M] = trial_interaction_diagram(obj,axis,quadrant,type(15:end),true);
                 otherwise
                     error('Unknown type: %s',type);
             end

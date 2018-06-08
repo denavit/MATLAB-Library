@@ -662,10 +662,10 @@ classdef SRC < structural_shape
                     [P,M] = obj.sectionInteraction2d(axis,'ACI',quadrant);
                 case 'factoredaci'
                     [P,M] = obj.sectionInteraction2d(axis,'FactoredACI',quadrant);                    
-                case 'proposed'
-                    [P,M] = proposedBeamColumnInteraction2d(obj,axis,quadrant,type(10:end),false);
-                case 'factoredproposed'
-                    [P,M] = proposedBeamColumnInteraction2d(obj,axis,quadrant,type(18:end),true);
+                case 'trial'
+                    [P,M] = trial_interaction_diagram(obj,axis,quadrant,type(7:end),false);
+                case 'factoredtrial'
+                    [P,M] = trial_interaction_diagram(obj,axis,quadrant,type(15:end),true);
                 otherwise
                     error('Unknown type: %s',type);
             end
