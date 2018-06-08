@@ -388,20 +388,38 @@ if isa(sectionData,'WF')
     bf = sprintf('%g',sectionData.bf);
     tf = sprintf('%g',sectionData.tf);
     k  = sprintf('%g',sectionData.k);
-    Fy = sprintf('%g',sectionData.Fy);
-    Fu = sprintf('%g',sectionData.Fu);
+    if isfield(options,'StrengthReduction')
+        Fy = sprintf('%g',options.StrengthReduction*sectionData.Fy);
+        Fu = sprintf('%g',options.StrengthReduction*sectionData.Fu);
+    else
+        Fy = sprintf('%g',sectionData.Fy);
+        Fu = sprintf('%g',sectionData.Fu);
+    end
     eu = sprintf('%g',sectionData.eu);
-    Es = sprintf('%g',sectionData.Es);
+    if isfield(options,'StiffnessReduction')
+        Es = sprintf('%g',options.StiffnessReduction*sectionData.Es);
+    else
+        Es = sprintf('%g',sectionData.Es);
+    end
 elseif isstruct(sectionData)
     units = sectionData.units;
     d  = parseFromStruct(sectionData,'d','%g');
     bf = parseFromStruct(sectionData,'bf','%g');
     tw = parseFromStruct(sectionData,'tw','%g');
     tf = parseFromStruct(sectionData,'tf','%g');
-    Fy = parseFromStruct(sectionData,'Fy','%g');
-    Fu = parseFromStruct(sectionData,'Fu','%g');
+    if isfield(options,'StrengthReduction')
+        Fy = parseFromStruct(sectionData,'Fy','%g','reduce',options.StrengthReduction);
+        Fu = parseFromStruct(sectionData,'Fu','%g','reduce',options.StrengthReduction);
+    else
+        Fy = parseFromStruct(sectionData,'Fy','%g');
+        Fu = parseFromStruct(sectionData,'Fu','%g');
+    end
     eu = parseFromStruct(sectionData,'eu','%g');
-    Es = parseFromStruct(sectionData,'Es','%g');
+    if isfield(options,'StiffnessReduction')
+        Es = parseFromStruct(sectionData,'Es','%g','reduce',options.StiffnessReduction);
+    else
+        Es = parseFromStruct(sectionData,'Es','%g');
+    end
 else
     error('Unknown type for sectionData: %s',class(sectionData))
 end
@@ -574,6 +592,7 @@ defaultValue = '';
 checkForReplace = false;
 replaceValue = [];
 replaceWith = '';
+reductionFactor = 1;
 
 i = 1;
 while i < length(varargin)
@@ -586,6 +605,9 @@ while i < length(varargin)
             replaceValue = varargin{i+1};
             replaceWith  = varargin{i+2};
             i = i+2;
+        case 'reduce'
+            reductionFactor = varargin{i+1};
+            i = i+1;
         otherwise
             error('Unknown Option');
     end
@@ -597,7 +619,7 @@ if isfield(obj,field);
     if checkForReplace && isequal(value,replaceValue)
         str = replaceWith;
     else
-        str = sprintf(format,value);
+        str = sprintf(format,reductionFactor*value);
     end
 else
     if ~isempty(defaultValue)
