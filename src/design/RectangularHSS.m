@@ -384,6 +384,57 @@ classdef RectangularHSS < structural_shape
                     error('Unknown type');
             end
         end
+        function strain = longitudinalStrain3d(obj,axialStrain,curvatureY,curvatureZ,type)
+            assert(isequal(size(axialStrain),size(curvatureY),size(curvatureZ)),...
+                'axialStrain and curvature should be the same size');
+            
+            z = obj.B/2 - obj.ro;
+            y = obj.H/2;
+            strain_s1a = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_s2a = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_s3a = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_s4a = axialStrain - z*curvatureY + y*curvatureZ;
+            
+            z = obj.B/2 - (1-1/sqrt(2))*obj.ro;
+            y = obj.H/2 - (1-1/sqrt(2))*obj.ro;
+            strain_s1b = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_s2b = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_s3b = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_s4b = axialStrain - z*curvatureY + y*curvatureZ;
+            
+            z = obj.B/2;
+            y = obj.H/2 - obj.ro;
+            strain_s1c = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_s2c = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_s3c = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_s4c = axialStrain - z*curvatureY + y*curvatureZ;            
+            
+            switch lower(type)
+                case 'maxcompressive'
+                    strain = min([...
+                        strain_s1a(:) strain_s2a(:) strain_s3a(:) strain_s4a(:) ...
+                        strain_s1b(:) strain_s2b(:) strain_s3b(:) strain_s4b(:) ...
+                        strain_s1c(:) strain_s2c(:) strain_s3c(:) strain_s4c(:) ...
+                        ],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxtensile'
+                    strain = max([...
+                        strain_s1a(:) strain_s2a(:) strain_s3a(:) strain_s4a(:) ...
+                        strain_s1b(:) strain_s2b(:) strain_s3b(:) strain_s4b(:) ...
+                        strain_s1c(:) strain_s2c(:) strain_s3c(:) strain_s4c(:) ...
+                        ],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxabsolute'
+                    strain = max(abs([...
+                        strain_s1a(:) strain_s2a(:) strain_s3a(:) strain_s4a(:) ...
+                        strain_s1b(:) strain_s2b(:) strain_s3b(:) strain_s4b(:) ...
+                        strain_s1c(:) strain_s2c(:) strain_s3c(:) strain_s4c(:) ...
+                        ]),[],2);
+                    strain = reshape(strain,size(axialStrain));
+                otherwise
+                    error('Unknown type: %s',type);
+            end
+        end        
         function x = getSectionData(obj,type,axis)
             switch lower(type)
                 case 'steelstrength'
