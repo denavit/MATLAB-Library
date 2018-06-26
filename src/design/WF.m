@@ -595,6 +595,31 @@ classdef WF < structural_shape
                     error('Unknown type');
             end
         end
+        function strain = longitudinalStrain3d(obj,axialStrain,curvatureY,curvatureZ,type)
+            assert(isequal(size(axialStrain),size(curvatureY),size(curvatureZ)),...
+                'axialStrain and curvature should be the same size');
+
+            z = obj.bf/2;
+            y = obj.d/2;
+            strain_s1 = axialStrain + z*curvatureY + y*curvatureZ;
+            strain_s2 = axialStrain + z*curvatureY - y*curvatureZ;
+            strain_s3 = axialStrain - z*curvatureY - y*curvatureZ;
+            strain_s4 = axialStrain - z*curvatureY + y*curvatureZ;
+
+            switch lower(type)
+                case 'maxcompressive'
+                    strain = min([strain_s1(:) strain_s2(:) strain_s3(:) strain_s4(:)],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxtensile'
+                    strain = max([strain_s1(:) strain_s2(:) strain_s3(:) strain_s4(:)],[],2);
+                    strain = reshape(strain,size(axialStrain));
+                case 'maxabsolute'
+                    strain = max(abs([strain_s1(:) strain_s2(:) strain_s3(:) strain_s4(:)]),[],2);
+                    strain = reshape(strain,size(axialStrain));
+                otherwise
+                    error('Unknown type: %s',type);
+            end
+        end
         function x = getSectionData(obj,type,axis)
             switch lower(type)
                 case 'steelstrength'
