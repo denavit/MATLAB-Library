@@ -19,7 +19,7 @@ classdef ACI_strain_compatibility_material_steel < ACI_strain_compatibility_mate
             stress = nan(size(strain));
             ind = strain >= obj.ey;
             stress(ind) = obj.Fy;
-            ind = strain <= obj.ey;
+            ind = strain <= -obj.ey;
             stress(ind) = -obj.Fy;
             ind = strain < obj.ey & strain > -obj.ey;
             stress(ind) = strain(ind)*obj.Es;
