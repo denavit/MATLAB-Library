@@ -28,7 +28,7 @@ classdef Rectangle_Shape < geometric_shape
         end
         function i = I(obj,axis)
             switch lower(axis)
-                case {'major','strong'}
+                case {'x','major','strong'}
                     if obj.r == 0
                         i = (1/12)*obj.B*obj.H^3;
                     else
@@ -37,7 +37,7 @@ classdef Rectangle_Shape < geometric_shape
                             + 4 * ((pi/16-4/(9*pi))*obj.r^4 ...
                             + (pi/4)*obj.r^2*(obj.H/2-(obj.r-(4*obj.r)/(3*pi)))^2);
                     end
-                case {'minor','weak'}
+                case {'y','minor','weak'}
                     if obj.r == 0
                         i = (1/12)*obj.H*obj.B^3;
                     else
@@ -47,30 +47,30 @@ classdef Rectangle_Shape < geometric_shape
                             + (pi/4)*obj.r^2*(obj.B/2-(obj.r-(4*obj.r)/(3*pi)))^2);
                     end
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
         end
         function s = S(obj,axis)
             I = obj.I(axis);
             switch lower(axis)
-                case {'major','strong'}
+                case {'x','major','strong'}
                     s = I/(obj.H/2);
-                case {'minor','weak'}
+                case {'y','minor','weak'}
                     s = I/(obj.B/2);
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end 
         end
         function z = Z(obj,axis)
             switch lower(axis)
-                case {'major','strong'}
+                case {'x','major','strong'}
                     if obj.r == 0
                         z = obj.B*obj.H^2/4;
                     else
                         z = obj.B*obj.H^2/4 ...
                             - 4*((1-pi/4)*obj.r^2)*(obj.H/2-((10-3*pi)/(12-3*pi))*obj.r);
                     end
-                case {'minor','weak'}
+                case {'y','minor','weak'}
                     if obj.r == 0
                         z = obj.H*obj.B^2/4;
                     else
@@ -78,7 +78,7 @@ classdef Rectangle_Shape < geometric_shape
                             - 4*((1-pi/4)*obj.r^2)*(obj.B/2-((10-3*pi)/(12-3*pi))*obj.r);
                     end
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
         end
         function [x,y,r] = boundary_points(obj)
@@ -113,7 +113,18 @@ classdef Rectangle_Shape < geometric_shape
             fill(x,y,obj.plot_fill_color,'LineStyle','none')
             plot(x,y,'k-','LineWidth',lineWidth);
             axis equal
-        end         
+        end
+        function add_to_fiber_section(obj,fiber_section,matID)
+            if obj.r == 0
+                fiber_section.addPatch('quad',matID,...
+                    -obj.B/2,-obj.H/2,...
+                    -obj.B/2, obj.H/2,...
+                     obj.B/2, obj.H/2,...
+                     obj.B/2,-obj.H/2);
+            else
+                error('Not yet implemented');
+            end
+        end
     end
     
 end
