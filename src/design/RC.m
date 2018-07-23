@@ -10,6 +10,7 @@ classdef RC < structural_shape
         conc_cross_section
         reinforcement
         
+        reinforcement_is_spiral = false;
         treat_reinforcement_as_point = true;
     end
     
@@ -101,7 +102,11 @@ classdef RC < structural_shape
                         otherwise
                             error('Unknown axis: %s',axis);
                     end
-                    phi = ACI_phi('other',et,obj.Fy/obj.Es);
+                    if obj.reinforcement_is_spiral
+                        phi = ACI_phi('spiral',et,obj.Fy/obj.Es);
+                    else
+                        phi = ACI_phi('other',et,obj.Fy/obj.Es);
+                    end
                     P = phi.*P;
                     M = phi.*M;
                 otherwise
