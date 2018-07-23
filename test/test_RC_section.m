@@ -3,9 +3,9 @@ clear all; close all; clc;
 %% Input
 fc      = 4;
 fy      = 60;
-H       = 40;
+H       = 20;
 B       = 40;
-cover   = 0.15*H;
+cover   = 0.15*B;
 rhosr   = 0.06;
 
 nbB     = 2;
@@ -35,4 +35,4 @@ img.set_point(1,[ 777 1637],[0.00 0.00])
 img.set_point(2,[2321 1629],[0.55 0.00])
 img.set_point(3,[ 768   92],[0.00 2.00])
 img.show_image
-img.plot_data(M/(fc*H*B*H),-P/(fc*H*B),'--xg','LineWidth',2);
+img.plot_data(M/(fc*H*B*B),-P/(fc*H*B),'--xg','LineWidth',2);
