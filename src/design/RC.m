@@ -68,6 +68,9 @@ classdef RC < structural_shape
                 i = i + obj.reinforcement{j}.I(axis);
             end
         end
+        function po = Po(obj)
+            po = 0.85*obj.fc*(obj.Ag-obj.Asr)+obj.fy*obj.Asr;
+        end
         function pnco = Pnco(obj)
             error('Not yet implemented')
         end
@@ -79,6 +82,13 @@ classdef RC < structural_shape
         end
         function mno = Mno(obj,axis)
             error('Not yet implemented')
+        end
+        function f = phi(obj,et)
+            if obj.reinforcement_is_spiral
+                f = ACI_phi('spiral',et,obj.fy/obj.Es);
+            else
+                f = ACI_phi('other',et,obj.fy/obj.Es);
+            end
         end
         function [P,M] = sectionInteraction2d(obj,axis,type,quadrant)
             switch lower(strtok(type,'-'))
@@ -102,11 +112,7 @@ classdef RC < structural_shape
                         otherwise
                             error('Unknown axis: %s',axis);
                     end
-                    if obj.reinforcement_is_spiral
-                        phi = ACI_phi('spiral',et,obj.Fy/obj.Es);
-                    else
-                        phi = ACI_phi('other',et,obj.Fy/obj.Es);
-                    end
+                    phi = obj.phi(et);
                     P = phi.*P;
                     M = phi.*M;
                 otherwise
