@@ -46,7 +46,7 @@ classdef SectionAnalysis < OpenSeesAnalysis
             end
             fprintf(myFile, 'node 1 0.0 0.0 0.0\n');
             fprintf(myFile, 'node 2 0.0 0.0 0.0\n');            
-            fprintf(myFile, 'element zeroLengthSection 1 1 2 1 \n');
+            fprintf(myFile, 'element zeroLengthSection 1 1 2 %i \n',obj.section_tag);
             fprintf(myFile, 'print {%s} -ele -flag 3 1\n',obj.path_for_tcl(filename_print));
             fprintf(myFile, 'exit 2 \n');
             fclose(myFile);
@@ -93,10 +93,11 @@ classdef SectionAnalysis < OpenSeesAnalysis
             end            
 
             % Run Analysis
-            [fiberLocZ,fiberLocY,fiberArea,fiberMat] = obj.getDiscretization; 
-            numMats = length(unique(fiberMat));
+            [fiberLocZ,fiberLocY,~,fiberMat] = obj.getDiscretization; 
+            [C,~,ic] = unique(fiberMat);
+            numMats = length(C);            
             if numMats <= 7
-                colormap(lines(numMats))
+                colormap(lines(numMats));
             else
                 temp = hsv(numMats);
                 colormap(vertcat(temp(1:2:end,:),temp(2:2:end,:)));
@@ -104,7 +105,7 @@ classdef SectionAnalysis < OpenSeesAnalysis
             if plotAs2dSection
                 fiberLocZ = 1:length(fiberLocY);
             end
-            scatter(fiberLocZ,fiberLocY,20,fiberMat,'filled')
+            scatter(fiberLocZ,fiberLocY,20,ic,'filled')
         end
         function printDiscretization(obj,fileID)
             if nargin < 2
