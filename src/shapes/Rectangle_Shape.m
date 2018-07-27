@@ -23,6 +23,16 @@ classdef Rectangle_Shape < geometric_shape
             tf4 = obj.r < min([obj.B obj.H])/2;
             tf = all([tf1 tf2 tf3 tf4]);
         end
+        function d = depth(obj,axis)
+            switch lower(axis)
+                case {'x','z'}
+                    d = obj.H;
+                case 'y'
+                    d = obj.B;
+                otherwise
+                    error('Unknown axis: %s',axis);
+            end            
+        end
         function a = A(obj)
             a = obj.H*obj.B - (4-pi)*obj.r^2;
         end
