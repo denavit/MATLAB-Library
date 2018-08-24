@@ -64,6 +64,7 @@ force_base2N = 4448.222;
 % Moment (Base Unit: kin)
 moment_base2kin = 1;
 moment_base2kft = 1/12;
+moment_base2lbft = 1000/12;
 moment_base2kNm = 4.448222*0.0254;
 moment_base2MNm = 4.448222*0.0254/1000;
 moment_base2tfm = 0.453592*0.0254;
@@ -206,6 +207,8 @@ switch lower(type)
                 toBase = 1/moment_base2kin;
             case {'kft','k-ft','kip-ft'};
                 toBase = 1/moment_base2kft;
+            case {'lbft','lb-ft'};
+                toBase = 1/moment_base2lbft;
             case {'nmm','n-mm'};     
                 toBase = 1/moment_base2Nmm;
             case {'knm','kn-m'};     
@@ -222,6 +225,8 @@ switch lower(type)
                 fromBase = moment_base2kin;
             case {'kft','k-ft'};     
                 fromBase = moment_base2kft;
+            case {'lbft','lb-ft'};
+                fromBase = moment_base2lbft;
             case {'nmm','n-mm'};     
                 fromBase = moment_base2Nmm;
             case {'knm','kn-m'};     
