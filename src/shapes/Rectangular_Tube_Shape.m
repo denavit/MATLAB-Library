@@ -53,7 +53,13 @@ classdef Rectangular_Tube_Shape < geometric_shape
             recto = Rectangle_Shape(obj.H,obj.B,obj.ro);
             recti = Rectangle_Shape(obj.H-2*obj.t,obj.B-2*obj.t,obj.ri);
             z = recto.Z(axis) - recti.Z(axis);
-        end        
+        end
+        function j = J(obj)
+            % @todo - this is a simple formula for thin walled tubes
+            % without corner radius, it should be replaced with a more
+            % accurate formula.
+            j = 2*obj.t*obj.H^2*obj.B^2/(obj.H+obj.B);
+        end
     end
     
 end
