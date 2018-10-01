@@ -111,6 +111,10 @@ classdef RCFT < structural_shape
             shp = Rectangle_Shape(obj.H,obj.B,obj.ro);
             i = shp.I(axis);
         end
+        function j = Js(obj)
+            shp = Rectangular_Tube_Shape(obj.H,obj.B,obj.t,obj.ro);
+            j = shp.J;
+        end
         function [d,b] = depth(obj,axis)
             switch lower(axis)
                 case 'strong'
@@ -662,8 +666,7 @@ classdef RCFT < structural_shape
         end
         
         %% Export and Information Functions
-        function [E,A,I] = sectionPropertiesForElasticAnalysis2d(...
-                obj,axis,type)
+        function [E,A,I] = sectionPropertiesForElasticAnalysis2d(obj,axis,type)
             switch lower(type)
                 case 'columnstrength'
                     EAeff = obj.Es*obj.As + obj.Ec*obj.Ac;
@@ -700,10 +703,17 @@ classdef RCFT < structural_shape
                     error('Unknown type');
             end
         end
-        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(...
-                obj,type)
-            error('Not yet implemented');
-            % @todo
+        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(obj,type)
+            switch lower(type)
+                case 'columnstrength'
+                    E  = obj.Es;
+                    A  = (obj.Es*obj.As + obj.Ec*obj.Ac)/E;
+                    Iz = obj.EIeff('z')/E;
+                    Iy = obj.EIeff('y')/E;
+                    GJ = obj.Gs*obj.Js;
+                otherwise
+                    error('Unknown type: %s',type);
+            end
         end
         function lp = Lp(obj,axis,Li)
             lp = 0.17*Li;
@@ -712,14 +722,14 @@ classdef RCFT < structural_shape
             assert(isequal(size(axialStrain),size(curvature)),...
                 'axialStrain and curvature should be the same size');
             switch lower(axis)
-                case 'strong'
+                case {'x','z','strong'}
                     yExtreme = obj.H/2;
                     yExtremeConcrete = obj.Hc/2;
-                case 'weak'
+                case {'y','weak'}
                     yExtreme = obj.B/2;
                     yExtremeConcrete = obj.Bc/2;
                 otherwise
-                    error('Bad axis');
+                    error('Bad axis: %s',axis);
             end
             switch lower(type)
                 case 'maxcompressive'

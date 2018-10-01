@@ -672,8 +672,7 @@ classdef SRC < structural_shape
         end
 
         %% Export and Information Functions
-        function [E,A,I] = sectionPropertiesForElasticAnalysis2d(...
-                obj,axis,type)
+        function [E,A,I] = sectionPropertiesForElasticAnalysis2d(obj,axis,type)
             switch lower(type)
                 case 'columnstrength'
                     EAeff = obj.Es*obj.As + obj.Eslr*obj.Asr + obj.Ec*obj.Ac;
@@ -713,10 +712,17 @@ classdef SRC < structural_shape
                     error('Unknown type: %s',type);
             end
         end
-        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(...
-                obj,type)
-            error('Not yet implemented');
-            % @todo
+        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(obj,type)
+            switch lower(type)
+                case 'columnstrength'
+                    E   = obj.Es;
+                    A   = (obj.Es*obj.As + obj.Eslr*obj.Asr + obj.Ec*obj.Ac)/E;
+                    Iz  = obj.EIeff('z')/E;
+                    Iy  = obj.EIeff('y')/E;
+                    GJ  = min(obj.Gs*obj.Js,obj.Gc*obj.Jc);
+                otherwise
+                    error('Unknown type: %s',type);
+            end
         end
         function lp = Lp(obj,axis,Li)
             switch lower(axis)
