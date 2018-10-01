@@ -593,6 +593,10 @@ switch lower(bendingType)
             E  = sprintf('%g',sectionData.E);
             A  = sprintf('%g',sectionData.A);
             I  = sprintf('%g',sectionData.Iy);
+        elseif isstruct(sectionData)
+            E  = parseFromStruct(sectionData,'E','%g');
+            A  = parseFromStruct(sectionData,'A','%g');
+            I  = parseFromStruct(sectionData,'I','%g');
         else
             error('Unknown type for sectionData: %s',class(sectionData))
         end
@@ -601,7 +605,7 @@ switch lower(bendingType)
             'uniaxialMaterial Elastic %i %s',...
             startMatID,E);
         definition{2} = sprintf(...
-            'twoFiberSectionGJ %s %i %g %g',...
+            'twoFiberSectionGJ %s %i %s %s',...
             sectionID,startMatID,A,I);
         
     otherwise
