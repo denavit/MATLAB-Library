@@ -306,21 +306,43 @@ if isa(sectionData,'RectangularHSS')
     H  = sprintf('%g',sectionData.H);
     B  = sprintf('%g',sectionData.B);
     t  = sprintf('%g',sectionData.t);
-    Fy = sprintf('%g',sectionData.Fy);
-    if isempty(sectionData.Fu)
-        Fu = 'calc';
+    if isfield(options,'StrengthReduction')
+        Fy = sprintf('%g',options.StrengthReduction*sectionData.Fy);
+        if isempty(sectionData.Fu)
+            Fu = 'calc';
+        else
+            Fu = sprintf('%g',options.StrengthReduction*sectionData.Fu);
+        end
     else
-        Fu = sprintf('%g',sectionData.Fu);
+        Fy = sprintf('%g',sectionData.Fy);
+        if isempty(sectionData.Fu)
+            Fu = 'calc';
+        else
+            Fu = sprintf('%g',sectionData.Fu);
+        end
     end
-    Es = sprintf('%g',sectionData.Es);
+    if isfield(options,'StiffnessReduction')
+        Es = sprintf('%g',options.StiffnessReduction*sectionData.Es);
+    else
+        Es = sprintf('%g',sectionData.Es);
+    end    
 elseif isstruct(sectionData)
     units = sectionData.units;
     H  = parseFromStruct(sectionData,'H','%g');
     B  = parseFromStruct(sectionData,'B','%g');
     t  = parseFromStruct(sectionData,'t','%g');
-    Fy = parseFromStruct(sectionData,'Fy','%g');
-    Fu = parseFromStruct(sectionData,'Fu','%g','replace',-1,'calc');
-    Es = parseFromStruct(sectionData,'Es','%g','replace',-1,'calc');
+    if isfield(options,'StrengthReduction')
+        Fy = parseFromStruct(sectionData,'Fy','%g','reduce',options.StrengthReduction);
+        Fu = parseFromStruct(sectionData,'Fu','%g','reduce',options.StrengthReduction,'replace',-1,'calc');
+    else
+        Fy = parseFromStruct(sectionData,'Fy','%g');
+        Fu = parseFromStruct(sectionData,'Fu','%g','replace',-1,'calc');
+    end
+    if isfield(options,'StiffnessReduction')
+        Es = parseFromStruct(sectionData,'Es','%g','reduce',options.StiffnessReduction,'replace',-1,'calc');
+    else
+        Es = parseFromStruct(sectionData,'Es','%g','replace',-1,'calc');
+    end
 else
     error('Unknown type for sectionData: %s',class(sectionData))
 end
@@ -347,20 +369,42 @@ if isa(sectionData,'RoundHSS')
     units = sectionData.units;
     D  = sprintf('%g',sectionData.D);
     t  = sprintf('%g',sectionData.t);
-    Fy = sprintf('%g',sectionData.Fy);
-    if isempty(sectionData.Fu)
-        Fu = 'calc';
+    if isfield(options,'StrengthReduction')
+        Fy = sprintf('%g',options.StrengthReduction*sectionData.Fy);
+        if isempty(sectionData.Fu)
+            Fu = 'calc';
+        else
+            Fu = sprintf('%g',options.StrengthReduction*sectionData.Fu);
+        end
     else
-        Fu = sprintf('%g',sectionData.Fu);
+        Fy = sprintf('%g',sectionData.Fy);
+        if isempty(sectionData.Fu)
+            Fu = 'calc';
+        else
+            Fu = sprintf('%g',sectionData.Fu);
+        end
     end
-    Es = sprintf('%g',sectionData.Es);
+    if isfield(options,'StiffnessReduction')
+        Es = sprintf('%g',options.StiffnessReduction*sectionData.Es);
+    else
+        Es = sprintf('%g',sectionData.Es);
+    end 
 elseif isstruct(sectionData)
     units = sectionData.units;
     D  = parseFromStruct(sectionData,'D','%g');
     t  = parseFromStruct(sectionData,'t','%g');
-    Fy = parseFromStruct(sectionData,'Fy','%g');
-    Fu = parseFromStruct(sectionData,'Fu','%g','replace',-1,'calc');
-    Es = parseFromStruct(sectionData,'Es','%g','replace',-1,'calc');
+    if isfield(options,'StrengthReduction')
+        Fy = parseFromStruct(sectionData,'Fy','%g','reduce',options.StrengthReduction);
+        Fu = parseFromStruct(sectionData,'Fu','%g','reduce',options.StrengthReduction,'replace',-1,'calc');
+    else
+        Fy = parseFromStruct(sectionData,'Fy','%g');
+        Fu = parseFromStruct(sectionData,'Fu','%g','replace',-1,'calc');
+    end
+    if isfield(options,'StiffnessReduction')
+        Es = parseFromStruct(sectionData,'Es','%g','reduce',options.StiffnessReduction,'replace',-1,'calc');
+    else
+        Es = parseFromStruct(sectionData,'Es','%g','replace',-1,'calc');
+    end
 else
     error('Unknown type for sectionData: %s',class(sectionData))
 end
