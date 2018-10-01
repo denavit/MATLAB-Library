@@ -38,7 +38,7 @@ classdef Rectangle_Shape < geometric_shape
         end
         function i = I(obj,axis)
             switch lower(axis)
-                case {'x','major','strong'}
+                case {'x','z','major','strong'}
                     if obj.r == 0
                         i = (1/12)*obj.B*obj.H^3;
                     else
@@ -63,7 +63,7 @@ classdef Rectangle_Shape < geometric_shape
         function s = S(obj,axis)
             I = obj.I(axis);
             switch lower(axis)
-                case {'x','major','strong'}
+                case {'x','z','major','strong'}
                     s = I/(obj.H/2);
                 case {'y','minor','weak'}
                     s = I/(obj.B/2);
@@ -73,7 +73,7 @@ classdef Rectangle_Shape < geometric_shape
         end
         function z = Z(obj,axis)
             switch lower(axis)
-                case {'x','major','strong'}
+                case {'x','z','major','strong'}
                     if obj.r == 0
                         z = obj.B*obj.H^2/4;
                     else
