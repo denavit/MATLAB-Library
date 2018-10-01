@@ -8,6 +8,8 @@ if isa(sectionData,'structural_shape')
     sectionType = sectionData.memberType;
 elseif isfield(sectionData,'sectionType')
     sectionType = sectionData.sectionType;
+elseif isfield(sectionData,'section_type')
+    sectionType = sectionData.section_type;
 else
     error('Cannot determine section type');
 end
@@ -17,11 +19,11 @@ if isnumeric(sectionID)
     sectionID = sprintf('%i',sectionID);
 end
 
-if strcmpi(bendingType,'strong')
+if any(strcmpi(bendingType,{'strong','x','z'}))
     bendingType = '2dStrong';
 end
 
-if strcmpi(bendingType,'weak')
+if any(strcmpi(bendingType,{'weak','y'}))
     bendingType = '2dWeak';
 end
 
@@ -505,6 +507,12 @@ switch lower(bendingType)
             Iz = sprintf('%g',sectionData.Iz);
             Iy = sprintf('%g',sectionData.Iy);
             GJ = sprintf('%g',sectionData.GJ);
+        elseif isstruct(sectionData)
+            E  = parseFromStruct(sectionData,'E','%g');
+            A  = parseFromStruct(sectionData,'A','%g');
+            Iz = parseFromStruct(sectionData,'Iz','%g');
+            Iy = parseFromStruct(sectionData,'Iy','%g');
+            GJ = parseFromStruct(sectionData,'GJ','%g');
         else
             error('Unknown type for sectionData: %s',class(sectionData))
         end
@@ -513,7 +521,7 @@ switch lower(bendingType)
             'uniaxialMaterial Elastic %i %s',...
             startMatID,E);
         definition{2} = sprintf(...
-            'fourFiberSectionGJ %s %i %g %g %g %g',...
+            'fourFiberSectionGJ %s %i %s %s %s %s',...
             sectionID,startMatID,A,Iy,Iz,GJ);
         
     case '2dstrong'
@@ -521,6 +529,10 @@ switch lower(bendingType)
             E  = sprintf('%g',sectionData.E);
             A  = sprintf('%g',sectionData.A);
             I  = sprintf('%g',sectionData.Iz);
+        elseif isstruct(sectionData)
+            E  = parseFromStruct(sectionData,'E','%g');
+            A  = parseFromStruct(sectionData,'A','%g');
+            I  = parseFromStruct(sectionData,'I','%g');
         else
             error('Unknown type for sectionData: %s',class(sectionData))
         end
