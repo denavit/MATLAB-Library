@@ -205,6 +205,14 @@ classdef SRC < structural_shape
                     error('Bad axis');
             end            
         end
+        function j = Js(obj)
+            shp = I_Shape(obj.d,obj.tw,obj.bf,obj.tf);
+            j = shp.J;
+        end
+        function j = Jc(obj)
+            shp = Rectangle_Shape(obj.H,obj.B);
+            j = shp.J;
+        end  
         function d = depth(obj,axis)
             switch lower(axis)
                 case 'strong'
@@ -712,14 +720,20 @@ classdef SRC < structural_shape
                     error('Unknown type: %s',type);
             end
         end
-        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(obj,type)
+        function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             switch lower(type)
                 case 'columnstrength'
                     E   = obj.Es;
                     A   = (obj.Es*obj.As + obj.Eslr*obj.Asr + obj.Ec*obj.Ac)/E;
                     Iz  = obj.EIeff('z')/E;
                     Iy  = obj.EIeff('y')/E;
-                    GJ  = min(obj.Gs*obj.Js,obj.Gc*obj.Jc);
+                    if obj.Gs*obj.Js >= obj.Gc*obj.Jc
+                        G = obj.Gs;
+                        J = obj.Js;
+                    else
+                        G = obj.Gc;
+                        J = obj.Jc;
+                    end
                 otherwise
                     error('Unknown type: %s',type);
             end

@@ -703,14 +703,15 @@ classdef RCFT < structural_shape
                     error('Unknown type');
             end
         end
-        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(obj,type)
+        function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             switch lower(type)
                 case 'columnstrength'
                     E  = obj.Es;
                     A  = (obj.Es*obj.As + obj.Ec*obj.Ac)/E;
                     Iz = obj.EIeff('z')/E;
                     Iy = obj.EIeff('y')/E;
-                    GJ = obj.Gs*obj.Js;
+                    G  = obj.Gs;
+                    J  = obj.Js;
                 otherwise
                     error('Unknown type: %s',type);
             end

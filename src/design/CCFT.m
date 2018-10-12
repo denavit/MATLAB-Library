@@ -531,8 +531,7 @@ classdef CCFT < structural_shape
                     error('Unknown type: %s',type);
             end
         end
-        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(...
-                obj,type)
+        function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             error('Not yet implemented');
             % @todo
         end

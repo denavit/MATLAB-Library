@@ -130,7 +130,7 @@ classdef RC < structural_shape
         function [E,A,I] = sectionPropertiesForElasticAnalysis2d(obj,axis,type)
             error('Not yet implemented')
         end
-        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(obj,type)
+        function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             error('Not yet implemented')
         end
         function strain = longitudinalStrain2d(obj,axis,axialStrain,curvature,type)

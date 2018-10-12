@@ -346,15 +346,15 @@ classdef RectangularHSS < structural_shape
                     error('Unknown type');
             end
         end
-        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(...
-                obj,type)
+        function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             switch lower(type)
                 case {'gross','columnstrength'}
-                    E = obj.Es;
-                    A = obj.A;
+                    E  = obj.Es;
+                    A  = obj.A;
                     Iz = obj.I('strong');
                     Iy = obj.I('weak');
-                    GJ = obj.G*obj.J;
+                    G  = obj.G;
+                    J  = obj.J;
                 otherwise
                     error('Unknown type');
             end

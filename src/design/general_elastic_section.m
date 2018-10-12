@@ -101,15 +101,15 @@ classdef general_elastic_section < structural_shape
                     error('Unknown type');
             end
         end
-        function [E,A,Iz,Iy,GJ] = sectionPropertiesForElasticAnalysis3d(...
-                obj,type)
+        function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             switch lower(type)
                 case {'gross','columnstrength'}
-                    E = obj.E;
-                    A = obj.A;
+                    E  = obj.E;
+                    A  = obj.A;
                     Iz = obj.Iz;
                     Iy = obj.Iy;
-                    GJ = obj.GJ;
+                    G  = obj.GJ;
+                    J  = 1;
                 otherwise
                     error('Unknown type');
             end
