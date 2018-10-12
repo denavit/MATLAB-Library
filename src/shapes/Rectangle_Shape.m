@@ -36,6 +36,23 @@ classdef Rectangle_Shape < geometric_shape
         function a = A(obj)
             a = obj.H*obj.B - (4-pi)*obj.r^2;
         end
+        function j = J(obj)
+            assert(obj.r==0,'Not yet implemented for rounded rectangles');
+            % Equation for J from Theory of Elasticity by Timoshenko and Goodier 
+            % (first two terms of the infinite series).
+            % See also: Plaut, R. H., and Eatherton, M. R. (2017). 
+            % "Lateral-torsional buckling of butterfly-shaped beams with 
+            % rectangular cross section.” Engineering Structures, 136, 210–218.
+            if obj.H >= obj.B 
+                ar = obj.H/obj.B;
+                beta = 1.0/3.0*(1-192.0/pi^5*1/ar*(tanh(pi*ar/(2.0))+tanh(3*pi*ar/2)/243));     
+                j = beta*obj.H*obj.B^3;               
+            else
+               ar = obj.B/obj.H;
+                beta = 1.0/3.0*(1-192.0/pi^5*1/ar*(tanh(pi*ar/(2.0))+tanh(3*pi*ar/2)/243));     
+                j = beta*obj.B*obj.H^3;                
+            end            
+        end
         function i = I(obj,axis)
             switch lower(axis)
                 case {'x','z','major','strong'}
