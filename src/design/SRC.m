@@ -173,36 +173,36 @@ classdef SRC < structural_shape
         end
         function inertia = Isr(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'strong','z','x'}
                     [~,y,A] = obj.rebarData;
                     inertia = sum(y.^2.*A);
-                case 'weak'
+                case {'weak','y'}
                     [z,~,A] = obj.rebarData;
                     inertia = sum(z.^2.*A);
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
         end
         function inertia = Ic(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'strong','x','z'}
                     inertia = (1/12)*obj.B*obj.H^3 - ...
-                        obj.Is('strong') - obj.Isr('strong');
-                case 'weak'
+                        obj.Is('z') - obj.Isr('z');
+                case {'weak','y'}
                     inertia = (1/12)*obj.H*obj.B^3 - ...
-                        obj.Is('weak') - obj.Isr('weak');
+                        obj.Is('y') - obj.Isr('y');
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
         end
         function inertia = Ig(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'strong','z','x'}
                     inertia = (1/12)*obj.B*obj.H^3;
-                case 'weak'
+                case {'weak','y'}
                     inertia = (1/12)*obj.H*obj.B^3;
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end            
         end
         function j = Js(obj)
@@ -215,12 +215,12 @@ classdef SRC < structural_shape
         end  
         function d = depth(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'strong','z','x'}
                     d = obj.H;
-                case 'weak'
+                case {'weak','y'}
                     d = obj.B;
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
         end
         function [z,y,A] = rebarData(obj)
@@ -290,9 +290,9 @@ classdef SRC < structural_shape
         end
         function [Pe,Me] = pointE(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'strong','z','x'}
                     PNA = -obj.d/2;
-                case 'weak'
+                case {'weak','y'}
                     PNA = -obj.bf/2;
                 otherwise
                     error('Unknown axis: %s',axis);
@@ -335,8 +335,8 @@ classdef SRC < structural_shape
         function x = stabilityReduction(obj,axis,Po)
             % Stability Reduction
             if strcmpi(axis,'min')
-                x = min([obj.stabilityReduction('strong',Po) ...
-                    obj.stabilityReduction('weak',Po)]);
+                x = min([obj.stabilityReduction('z',Po) ...
+                    obj.stabilityReduction('y',Po)]);
                 return
             end
             Pe = pi^2*obj.EIeff(axis)/(obj.K(axis)*obj.L(axis))^2;
@@ -373,8 +373,7 @@ classdef SRC < structural_shape
 
             % Based on the steel section alone
             switch lower(axis)
-                case 'strong'
-                    axis = 'strong';
+                case {'strong','z','x'}
                     Aw = obj.d*obj.tw;
                     h = obj.d - 2*obj.tf;
                     lambda = h/obj.tw;
@@ -385,16 +384,15 @@ classdef SRC < structural_shape
                         vn = 0;
                         return
                     end
-                case 'weak'
-                    axis = 'weak';
+                case {'weak','y'}
                     Aw = 2*obj.bf*obj.tf;
                     lambda = obj.bf/2/obj.tf;
                     kv = 1.2;
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
 
-            if ( strcmpi(axis,'strong') && lambda <= 2.24*sqrt(obj.Es/obj.Fy) )
+            if ( any(strcmpi(axis,{'strong','z','x'})) && lambda <= 2.24*sqrt(obj.Es/obj.Fy) )
                 Cv = 1;
             else
                 if ( lambda <= 1.10*sqrt(kv*obj.Es/obj.Fy) )
@@ -409,7 +407,7 @@ classdef SRC < structural_shape
         end
         function vpz = Vpz(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'strong','z','x'}
 
                     switch obj.units
                         % fcv[psi] = 15*sqrt(fc[psi])
@@ -430,15 +428,15 @@ classdef SRC < structural_shape
                     end
                     vpz = Vc+Vs+Vd;
 
-                case 'weak'
+                case {'weak','y'}
                     error('Vpz not implemented for weak axis');
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
         end
         function kepz = Kepz(obj,axis,h,S)
             switch lower(axis)
-                case 'strong'
+                case {'strong','z','x'}
 
                     tanAlpha = h/obj.H;
                     Acp = 5/6*(S/tanAlpha)*obj.B;
@@ -452,10 +450,10 @@ classdef SRC < structural_shape
                     end
                     kepz = kec+kes+ked;
 
-                case 'weak'
+                case {'weak','y'}
                     error('Kepz not implemented for weak axis');
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
         end
         function Kbs = bondSlip(obj,axis)          
@@ -477,8 +475,8 @@ classdef SRC < structural_shape
             phi_Vweak  = 0.90;
 
             % Compressive Load / Moment Interaction
-            [P_pointCs,M_pointCs] = obj.pointC('strong');
-            [~,M_pointCw] = obj.pointC('weak');
+            [P_pointCs,M_pointCs] = obj.pointC('z');
+            [~,M_pointCw] = obj.pointC('y');
             x = obj.stabilityReduction('min',obj.Pnco);
             Pa = phi_Pc*x*obj.Pnco;
             Pc = phi_Pc*x*(-P_pointCs);
@@ -494,14 +492,14 @@ classdef SRC < structural_shape
             if isempty(Vs)
                 ratio_Vs = 0;
             else
-                ratio_Vs = max(abs(Vs))/(phi_Vstrong*obj.Vn('strong'));
+                ratio_Vs = max(abs(Vs))/(phi_Vstrong*obj.Vn('z'));
             end
 
             % Check weak axis shear
             if isempty(Vw)
                 ratio_Vw = 0;
             else
-                ratio_Vw = max(abs(Vw))/(phi_Vweak*obj.Vn('weak'));
+                ratio_Vw = max(abs(Vw))/(phi_Vweak*obj.Vn('y'));
             end
 
             % No check on torsion
@@ -545,8 +543,8 @@ classdef SRC < structural_shape
                     pass_tf = 0.004 <= obj.Asr/(obj.H*obj.B);
                 case 'slendernessratio_klr'
                     limit = varargin{1};
-                    KLr_strong = obj.Kstrong*obj.L/sqrt(obj.Is('strong')/obj.As);
-                    KLr_weak = obj.Kweak*obj.L/sqrt(obj.Is('weak')/obj.As);
+                    KLr_strong = obj.Kstrong*obj.L/sqrt(obj.Is('z')/obj.As);
+                    KLr_weak = obj.Kweak*obj.L/sqrt(obj.Is('y')/obj.As);
                     pass_tf = max([KLr_strong KLr_weak]) < limit;
                 case 'moderatelyductilesection'
                     switch obj.units
@@ -624,22 +622,22 @@ classdef SRC < structural_shape
                 case 'aci'
                     scACI = obj.strainCompatibilityAciObject;
                     switch lower(axis)
-                        case 'strong'
+                        case {'strong','z','x'}
                             [P,M,~] = scACI.interactionSweep(0,50);
-                        case 'weak'
+                        case {'weak','y'}
                             [P,~,M] = scACI.interactionSweep(pi/2,50);
                         otherwise
-                            error('Bad axis');
+                            error('Unknown axis: %s',axis);
                     end
                 case 'factoredaci'
                     scACI = obj.strainCompatibilityAciObject;
                     switch lower(axis)
-                        case 'strong'
+                        case {'strong','z','x'}
                             [P,M,~,et] = scACI.interactionSweep(0,50);
-                        case 'weak'
+                        case {'weak','y'}
                             [P,~,M,et] = scACI.interactionSweep(pi/2,50);
                         otherwise
-                            error('Bad axis');
+                            error('Unknown axis: %s',axis);
                     end 
                     phi = ACI_phi('other',et,obj.Fy/obj.Es);
                     P = phi.*P;
@@ -740,26 +738,26 @@ classdef SRC < structural_shape
         end
         function lp = Lp(obj,axis,Li)
             switch lower(axis)
-                case 'strong'
+                case {'strong','z','x'}
                     lp = 0.12*Li;
-                case 'weak'
+                case {'weak','y'}
                     lp = 0.20*Li;
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
         end
         function strain = longitudinalStrain2d(obj,axis,axialStrain,curvature,type)
             assert(isequal(size(axialStrain),size(curvature)),...
                 'axialStrain and curvature should be the same size');
             switch lower(axis)
-                case 'strong'
+                case {'strong','z','x'}
                     yExtreme = obj.H/2;
                     yExtremeConcrete = obj.H/2;
-                case 'weak'
+                case {'weak','y'}
                     yExtreme = obj.B/2;
                     yExtremeConcrete = obj.B/2;
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end
             switch lower(type)
                 case 'maxcompressive'
@@ -996,14 +994,14 @@ end
 function Mb = compute_Mb(obj,axis)
 
 switch lower(axis)
-    case 'strong'
+    case {'strong','z','x'}
         [~,ybar,~] = obj.rebarData;
         PNAb = vertcat(ybar(ybar>0),0,obj.H/2,obj.d/2,obj.d/2-obj.tf);
-    case 'weak'
+    case {'weak','y'}
         [ybar,~,~] = obj.rebarData;
         PNAb = vertcat(ybar(ybar>0),0,obj.B/2,obj.bf/2,obj.tw/2);
     otherwise
-        error('Bad axis');
+        error('Unknown axis: %s',axis);
 end
 
 PNAb = sort(unique(PNAb));
@@ -1048,7 +1046,7 @@ end
 function [P,M,dPdPNA] = PSD_steel(obj,axis,PNA)
 
 switch lower(axis)
-    case 'strong'
+    case {'strong','z','x'}
         if PNA >= obj.d/2
             P = obj.As*obj.Fy;
             M = 0;
@@ -1074,7 +1072,7 @@ switch lower(axis)
             M = 0;
             dPdPNA = 0;
         end
-    case 'weak'
+    case {'weak','y'}
         if PNA >= obj.bf/2
             P = obj.As*obj.Fy;
             M = 0;
@@ -1101,7 +1099,7 @@ switch lower(axis)
             dPdPNA = 0;
         end
     otherwise
-        error('Bad axis');
+        error('Unknown axis: %s',axis);
 end
 if nargout < 3
     clear dPdPNA
@@ -1113,7 +1111,7 @@ function [P,M,dPdPNA] = PSD_conc(obj,axis,PNA)
 
 C2 = 0.85;
 switch lower(axis)
-    case 'strong'
+    case {'strong','z','x'}
         [~,ybar,A] = obj.rebarData;
         if PNA >= obj.H/2
             P = 0;
@@ -1187,7 +1185,7 @@ switch lower(axis)
             M = 0;
             dPdPNA = 0;
         end
-    case 'weak'
+    case {'weak','y'}
         [ybar,~,A] = obj.rebarData;
         if PNA >= obj.B/2
             P = 0;
@@ -1262,7 +1260,7 @@ switch lower(axis)
             dPdPNA = 0;
         end
     otherwise
-        error('Bad axis');
+        error('Unknown axis: %s',axis);
 end
 
 F = zeros(size(A));
@@ -1281,12 +1279,12 @@ end
 function [P,M] = PSD_reinf(obj,axis,PNA)
 
 switch lower(axis)
-    case 'strong'
+    case {'strong','z','x'}
         [~,ybar,A] = obj.rebarData;
-    case 'weak'
+    case {'weak','y'}
         [ybar,~,A] = obj.rebarData;
     otherwise
-        error('Bad axis');
+        error('Unknown axis: %s',axis);
 end
 
 F = zeros(size(A));
