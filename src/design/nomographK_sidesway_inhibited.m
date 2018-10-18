@@ -26,7 +26,12 @@ else
 end
     
 if (exitflag < 1)
-    error('Could not deterine K'); 
+    error('Could not determine K'); 
+end
+
+if K < 0.5 || 1 < K
+    error('K found by fsolve is not correct');
+    % If this becomes a problem then try using fmincon
 end
 
 end
