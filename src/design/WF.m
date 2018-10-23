@@ -260,8 +260,8 @@ classdef WF < structural_shape
                 rts = sqrt(sqrt(obj.I('weak')*Cw)/obj.S('strong'));
                 Lp = 1.76*obj.r('weak')*sqrt(obj.Es/obj.Fy);
                 Lr = 1.95*rts*(obj.Es/0.7/obj.Fy)* ...
-                    sqrt(obj.J/obj.S(axis)/ho)* ...
-                    sqrt(1+sqrt(1+6.76*(0.7*obj.Fy/obj.Es * obj.S(axis)*ho/obj.J )));
+                    sqrt(obj.J/obj.S(axis)/ho+ ...
+                    sqrt((obj.J/obj.S(axis)/ho)^2+6.76*(0.7*obj.Fy/obj.Es)^2))
                 if ( Lb <= Lp )
                     mltb = mp;
                 elseif ( Lb <= Lr )
