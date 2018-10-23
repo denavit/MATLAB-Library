@@ -55,10 +55,12 @@ classdef Rectangular_Tube_Shape < geometric_shape
             z = recto.Z(axis) - recti.Z(axis);
         end
         function j = J(obj)
-            % @todo - this is a simple formula for thin walled tubes
-            % without corner radius, it should be replaced with a more
-            % accurate formula.
-            j = 2*obj.t*obj.H^2*obj.B^2/(obj.H+obj.B);
+            % This equation is from "Torsional Section Properties of Steel Shapes"
+            % published by the Canadian Institute of Steel Construction, 2002 
+            rc = mean([obj.ro,obj.ri]);
+            p = 2 *((obj.H - obj.t) + (obj.B - obj.t)) - 2 * rc * (4 - pi);
+            Ap = (obj.H - obj.t)*(obj.B - obj.t) - rc * (4 - pi);
+            j  = 4* Ap^2*obj.t/p;
         end
     end
     
