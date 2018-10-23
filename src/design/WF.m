@@ -90,9 +90,9 @@ classdef WF < structural_shape
         end
         function d = depth(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'z','x','major','strong'}
                     d = obj.d;
-                case 'weak'
+                case {'y','minor','weak'}
                     d = obj.bf;
                 otherwise
                     error('Bad axis'); 
@@ -101,6 +101,7 @@ classdef WF < structural_shape
         
         %% Design Strengths
         function lambda = lambda(obj,axis,component)
+            % @todo - remove this function and replace with bf_over_2tf and h_over_tw
             if strcmpi(component,'flange')
                 lambda = (obj.bf/2)/obj.tf;
             elseif strcmpi(component,'web')
@@ -117,7 +118,7 @@ classdef WF < structural_shape
                 return
             end
             
-            lambdaf = obj.lambda('strong','flange');
+            lambdaf = obj.lambda('x','flange');
             lambdaRf = 0.56*sqrt(obj.Es/obj.Fy);
             if ( lambdaf <= lambdaRf )
                 flangeSlenderness = 'noncompact';
@@ -125,7 +126,7 @@ classdef WF < structural_shape
                 flangeSlenderness = 'slender';
             end
             
-            lambdaw = obj.lambda('strong','web');
+            lambdaw = obj.lambda('x','web');
             lambdaRw = 1.49*sqrt(obj.Es/obj.Fy);
             if ( lambdaw <= lambdaRw )
                 webSlenderness = 'noncompact';
@@ -159,8 +160,8 @@ classdef WF < structural_shape
                 end
                 if strcmpi(webSlenderness,'slender')
                     Fe = min([...
-                        pi^2*obj.Es/(obj.K('strong')*obj.L('strong')/obj.r('strong'))^2;
-                        pi^2*obj.Es/(obj.K('weak')*obj.L('weak')/obj.r('weak'))^2]);
+                        pi^2*obj.Es/(obj.K('x')*obj.L('x')/obj.r('x'))^2;
+                        pi^2*obj.Es/(obj.K('y')*obj.L('y')/obj.r('y'))^2]);
                     f = AISC_column_curve(obj.Fy/Fe)*obj.Fy;
                     hwe = min([1.92*obj.tw*sqrt(obj.Es/f)*(1-0.34*sqrt(obj.Es/f)/lambdaw) obj.hw]);
                     if hwe < 0
@@ -178,10 +179,10 @@ classdef WF < structural_shape
         function pnc = Pnc(obj,axis)
             % Compressive Strength
             if strcmpi(axis,'min')
-                pnc = min([obj.Pnc('strong') obj.Pnc('weak')]);
+                pnc = min([obj.Pnc('x') obj.Pnc('y')]);
                 return;
             elseif strcmpi(axis,'max')
-                pnc = max([obj.Pnc('strong') obj.Pnc('weak')]);
+                pnc = max([obj.Pnc('x') obj.Pnc('y')]);
                 return;
             end
             % @todo - add torsional buckling (E4)
@@ -249,78 +250,78 @@ classdef WF < structural_shape
                 Lb = 0;
             end
             
-            if strcmpi(axis,'strong')
-                % Strong axis bending
-                mp = obj.Fy*obj.Z(axis);
-                
-                % Lateral Torsional Buckling
-                % Doubly symmetric I-shape: c = 1
-                ho = obj.d-obj.tf;
-                Cw = obj.I('weak')*ho^2/4;
-                rts = sqrt(sqrt(obj.I('weak')*Cw)/obj.S('strong'));
-                Lp = 1.76*obj.r('weak')*sqrt(obj.Es/obj.Fy);
-                Lr = 1.95*rts*(obj.Es/0.7/obj.Fy)* ...
-                    sqrt(obj.J/obj.S(axis)/ho+ ...
-                    sqrt((obj.J/obj.S(axis)/ho)^2+6.76*(0.7*obj.Fy/obj.Es)^2))
-                if ( Lb <= Lp )
-                    mltb = mp;
-                elseif ( Lb <= Lr )
-                    mltb = Cb*( mp - (mp-0.7*obj.Fy*obj.S(axis))*((Lb-Lp)/(Lr-Lp)) );
-                    mltb = min([mltb mp]);
-                else
-                    Fcr = Cb*pi^2*obj.Es / (Lb/rts)^2 * ...
-                        sqrt(1+0.078*(obj.J/obj.S(axis)/ho)*(Lb/rts)^2);
-                    mltb = Fcr*obj.S(axis);
-                    mltb = min([mltb mp]);
-                end     
-                
-                if strcmpi(webSlenderness,'compact')
-                    if strcmpi(flangeSlenderness,'compact')                     
-                        mn = min([mp mltb]);
+            switch lower(axis)
+                case {'z','x','major','strong'}
+                    % Strong axis bending
+                    mp = obj.Fy*obj.Z(axis);
+
+                    % Lateral Torsional Buckling
+                    % Doubly symmetric I-shape: c = 1
+                    ho = obj.d-obj.tf;
+                    Cw = obj.I('y')*ho^2/4;
+                    rts = sqrt(sqrt(obj.I('y')*Cw)/obj.S('x'));
+                    Lp = 1.76*obj.r('y')*sqrt(obj.Es/obj.Fy);
+                    Lr = 1.95*rts*(obj.Es/0.7/obj.Fy)* ...
+                        sqrt(obj.J/obj.S(axis)/ho+ ...
+                        sqrt((obj.J/obj.S(axis)/ho)^2+6.76*(0.7*obj.Fy/obj.Es)^2));
+                    if ( Lb <= Lp )
+                        mltb = mp;
+                    elseif ( Lb <= Lr )
+                        mltb = Cb*( mp - (mp-0.7*obj.Fy*obj.S(axis))*((Lb-Lp)/(Lr-Lp)) );
+                        mltb = min([mltb mp]);
                     else
-                        if strcmpi(flangeSlenderness,'noncompact')
-                            mcflb = mp - (mp-0.7*obj.Fy*obj.S(axis))*...
-                                ((lambdaf-lambdaPf)/(lambdaRf-lambdaPf));
+                        Fcr = Cb*pi^2*obj.Es / (Lb/rts)^2 * ...
+                            sqrt(1+0.078*(obj.J/obj.S(axis)/ho)*(Lb/rts)^2);
+                        mltb = Fcr*obj.S(axis);
+                        mltb = min([mltb mp]);
+                    end     
+
+                    if strcmpi(webSlenderness,'compact')
+                        if strcmpi(flangeSlenderness,'compact')                     
+                            mn = min([mp mltb]);
                         else
-                            kc = 4/sqrt(lambdaw);
-                            if ( kc < 0.35 ); kc = 0.35; end
-                            if ( kc > 0.76 ); kc = 0.76; end
-                            mcflb = 0.9*obj.Es*kc*obj.S(axis)/lambdaf^2;
+                            if strcmpi(flangeSlenderness,'noncompact')
+                                mcflb = mp - (mp-0.7*obj.Fy*obj.S(axis))*...
+                                    ((lambdaf-lambdaPf)/(lambdaRf-lambdaPf));
+                            else
+                                kc = 4/sqrt(lambdaw);
+                                if ( kc < 0.35 ); kc = 0.35; end
+                                if ( kc > 0.76 ); kc = 0.76; end
+                                mcflb = 0.9*obj.Es*kc*obj.S(axis)/lambdaf^2;
+                            end
+                            mn = min([mp mltb mcflb]);  
                         end
-                        mn = min([mp mltb mcflb]);  
+                    elseif strcmpi(webSlenderness,'noncompact')
+                        warning('design:notImplemented',...
+                            'Mn for wide flanges shapes with noncompact webs not yet implemented')
+                        mn = 0;
+                    else
+                        warning('design:notImplemented',...
+                            'Mn for wide flanges shapes with slender webs not yet implemented')
+                        mn = 0;
                     end
-                elseif strcmpi(webSlenderness,'noncompact')
-                    warning('design:notImplemented',...
-                        'Mn for wide flanges shapes with noncompact webs not yet implemented')
-                    mn = 0;
-                else
-                    warning('design:notImplemented',...
-                        'Mn for wide flanges shapes with slender webs not yet implemented')
-                    mn = 0;
-                end
-            elseif strcmpi(axis,'weak') 
-                % Weak axis bending
-                mp = min([obj.Fy*obj.Z(axis) 1.6*obj.Fy*obj.S(axis)]);
-                if strcmpi(flangeSlenderness,'compact')
-                    mflb = mp;
-                elseif strcmpi(flangeSlenderness,'noncompact')
-                    mflb = mp - (mp - 0.7*obj.Fy*obj.S(axis))*...
-                        ((lambdaf - lambdaPf)/(lambdaRf - lambdaPf));
-                else 
-                    Fcr = 0.69*obj.Es/lambdaf^2;
-                    mflb = Fcr*obj.S(axis);
-                end
-                mn = min([mp mflb]);
-            else
-                error('Unknown axis');           
+                case {'y','minor','weak'}
+                    % Weak axis bending
+                    mp = min([obj.Fy*obj.Z(axis) 1.6*obj.Fy*obj.S(axis)]);
+                    if strcmpi(flangeSlenderness,'compact')
+                        mflb = mp;
+                    elseif strcmpi(flangeSlenderness,'noncompact')
+                        mflb = mp - (mp - 0.7*obj.Fy*obj.S(axis))*...
+                            ((lambdaf - lambdaPf)/(lambdaRf - lambdaPf));
+                    else 
+                        Fcr = 0.69*obj.Es/lambdaf^2;
+                        mflb = Fcr*obj.S(axis);
+                    end
+                    mn = min([mp mflb]);
+                otherwise
+                    error('Unknown axis: %s',axis);
             end
             
         end
         function vn = Vn(obj,axis) 
             % Shear Strength
             switch lower(axis)
-                case 'strong'
-                    axis = 'strong';
+                case {'z','x','major','strong'}
                     Aw = obj.d*obj.tw;
                     lambda = obj.lambda(axis,'web');
                     if ( lambda < 260 )
@@ -330,8 +331,7 @@ classdef WF < structural_shape
                         vn = 0;
                         return
                     end
-                case 'weak'
-                    axis = 'weak';
+                case {'y','minor','weak'}
                     Aw = 2*obj.bf*obj.tf;
                     lambda = obj.lambda(axis,'flange');
                     kv = 1.2;               
@@ -339,7 +339,7 @@ classdef WF < structural_shape
                     error('Bad axis'); 
             end              
 
-            if ( strcmpi(axis,'strong') && lambda <= 2.24*sqrt(obj.Es/obj.Fy) )
+            if ( any(strcmpi(axis,{'z','x','major','strong'})) && lambda <= 2.24*sqrt(obj.Es/obj.Fy) )
                 Cv = 1;
             else
                 if ( lambda <= 1.10*sqrt(kv*obj.Es/obj.Fy) )
@@ -358,7 +358,7 @@ classdef WF < structural_shape
         end
         function pnc = Pnc_expected(obj,axis)
             if strcmpi(axis,'min')
-                pnc = min([obj.Pnc_expected('strong') obj.Pnc_expected('weak')]);
+                pnc = min([obj.Pnc_expected('x') obj.Pnc_expected('y')]);
                 return
             end     
             assert(obj.lambda(axis,'flange') < 0.56*sqrt(obj.Es/obj.Fy),...
@@ -408,8 +408,8 @@ classdef WF < structural_shape
             else
                 Lb = obj.Lb;
             end
-            Mcs = phi_M*obj.Mn('strong',Lb,Cb); 
-            Mcw = phi_M*obj.Mn('weak');
+            Mcs = phi_M*obj.Mn('x',Lb,Cb); 
+            Mcw = phi_M*obj.Mn('y');
             
             % Compressive Load / Moment Interaction
             Pc = phi_Pc*obj.Pnc('min');
@@ -423,14 +423,14 @@ classdef WF < structural_shape
             if isempty(Vs)
                 ratio_Vs = 0;
             else
-                ratio_Vs = max(abs(Vs))/(phi_Vstrong*obj.Vn('strong'));
+                ratio_Vs = max(abs(Vs))/(phi_Vstrong*obj.Vn('x'));
             end
            
             % Check weak axis shear
             if isempty(Vw)
                 ratio_Vw = 0;
             else
-                ratio_Vw = max(abs(Vw))/(phi_Vweak*obj.Vn('weak'));
+                ratio_Vw = max(abs(Vw))/(phi_Vweak*obj.Vn('y'));
             end            
            
             % No check on torsion
@@ -446,7 +446,7 @@ classdef WF < structural_shape
                     Pu = varargin{1};
                     
                     % Web
-                    lambdaw = obj.lambda('strong','web');
+                    lambdaw = obj.lambda('x','web');
                     if strcmpi(Pu,'brace')
                         lambdaHDw = 1.49*sqrt(obj.Es/obj.Fy);
                     else
@@ -462,7 +462,7 @@ classdef WF < structural_shape
                     end
                     tf_web = lambdaw <= lambdaHDw;
                     % Flange
-                    lambdaf = obj.lambda('strong','flange');
+                    lambdaf = obj.lambda('x','flange');
                     lambdaHDf = 0.30*sqrt(obj.Es/obj.Fy);
                     tf_flange = lambdaf <= lambdaHDf;
                     
@@ -471,7 +471,7 @@ classdef WF < structural_shape
                     Pu = varargin{1};
                     
                     % Web
-                    lambdaw = obj.lambda('strong','web');
+                    lambdaw = obj.lambda('x','web');
                     if strcmpi(Pu,'brace')
                         lambdaHDw = 1.49*sqrt(obj.Es/obj.Fy);
                     else
@@ -487,20 +487,20 @@ classdef WF < structural_shape
                     end
                     tf_web = lambdaw <= lambdaHDw;
                     % Flange
-                    lambdaf = obj.lambda('strong','flange');
+                    lambdaf = obj.lambda('x','flange');
                     lambdaHDf = 0.38*sqrt(obj.Es/obj.Fy);
                     tf_flange = lambdaf <= lambdaHDf;
                     
                     pass_tf = tf_web && tf_flange;  
                 case 'moderatelyductilebracespacing'
-                    pass_tf = obj.L('weak') < 0.17*obj.r('weak')*obj.Es/obj.Fy;
+                    pass_tf = obj.L('y') < 0.17*obj.r('y')*obj.Es/obj.Fy;
                 case 'highlyductilebracespacing'
-                    pass_tf = obj.L('weak') < 0.086*obj.r('weak')*obj.Es/obj.Fy;
+                    pass_tf = obj.L('y') < 0.086*obj.r('y')*obj.Es/obj.Fy;
                 case 'slendernessratio_klr'
                     limit = varargin{1};                    
-                    KLr_strong = obj.K('strong')*obj.L('strong')/sqrt(obj.I('strong')/obj.A);
-                    KLr_weak = obj.K('weak')*obj.L('weak')/sqrt(obj.I('weak')/obj.A);
-                    pass_tf = max([KLr_strong KLr_weak]) < limit;
+                    KLr_x = obj.K('x')*obj.L('x')/obj.r('x');
+                    KLr_y = obj.K('y')*obj.L('y')/obj.r('y');
+                    pass_tf = max([KLr_x KLr_y]) < limit;
                 case 'requiredmomentofinertia'
                     axis        = varargin{1};
                     lowerLimit  = varargin{2};
@@ -551,8 +551,8 @@ classdef WF < structural_shape
                 case {'gross','columnstrength'}
                     E  = obj.Es;
                     A  = obj.A;
-                    Iz = obj.I('strong');
-                    Iy = obj.I('weak');
+                    Iz = obj.I('z');
+                    Iy = obj.I('y');
                     G  = obj.G;
                     J  = obj.J;
                 otherwise
@@ -561,11 +561,11 @@ classdef WF < structural_shape
         end
         function lp = Lp(obj,axis,Li)
             switch lower(axis)
-                case 'strong'
+                case {'z','x','major','strong'}
                     assert(~isempty(obj.Fu),'Fu is required to compute Lp');
                     lp = (0.405-0.0033*(obj.hw/obj.tw)-0.0268*(obj.bf/2/obj.tf)+0.184*(obj.Fu/obj.Fy-1))*Li;
-                case 'weak'
-                    error('Lp not implemented for weak axis bending');
+                case {'y','minor','weak'}
+                    error('Lp not implemented for minor-axis bending');
                 otherwise
                     error('Bad axis'); 
             end             
@@ -574,9 +574,9 @@ classdef WF < structural_shape
             assert(isequal(size(axialStrain),size(curvature)),...
                 'axialStrain and curvature should be the same size');
             switch lower(axis)
-                case 'strong'
+                case {'z','x','major','strong'}
                     yExtreme = obj.d/2;
-                case 'weak'
+                case {'y','minor','weak'}
                     yExtreme = obj.bf/2;
                 otherwise
                     error('Bad axis'); 

@@ -58,30 +58,30 @@ classdef I_Shape < geometric_shape
         end
         function i = I(obj,axis)
             switch lower(axis)
-                case {'major','strong'}
+                case {'z','x','major','strong'}
                     i = (1/12)*(obj.bf*obj.d^3 - (obj.bf-obj.tw)*obj.dw^3) ...
                         + 4*(obj.I_fillet+obj.A_fillet*(obj.dw/2-obj.r_fillet+obj.Y_Bar_fillet)^2);
-                case {'minor','weak'}
+                case {'y','minor','weak'}
                     i = (1/12)*(2*obj.tf*obj.bf^3 + obj.dw*obj.tw^3) ...
                         + 4*(obj.I_fillet+obj.A_fillet*(obj.tw/2+obj.r_fillet-obj.Y_Bar_fillet)^2);
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end 
         end
         function s = S(obj,axis)
             I = obj.I(axis);
             switch lower(axis)
-                case {'major','strong'}
+                case {'z','x','major','strong'}
                     s = I/(obj.d/2);
-                case {'minor','weak'}
+                case {'y','minor','weak'}
                     s = I/(obj.bf/2);
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end 
         end
         function z = Z(obj,axis)
             switch lower(axis)
-                case {'x','major','strong'}
+                case {'z','x','major','strong'}
                     z = 2*(...
                         (obj.tf*obj.bf)*(obj.d/2-obj.tf/2) + ...
                         (obj.dw/2*obj.tw)*(obj.dw/4) + ...
@@ -92,7 +92,7 @@ classdef I_Shape < geometric_shape
                         (obj.dw*obj.tw/2)*(obj.tw/4) + ...
                         2*(obj.A_fillet)*(obj.tw/2+obj.r_fillet-obj.Y_Bar_fillet));
                 otherwise
-                    error('Bad axis');
+                    error('Unknown axis: %s',axis);
             end 
         end
         function j = J(obj)
