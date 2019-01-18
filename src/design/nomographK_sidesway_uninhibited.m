@@ -16,16 +16,22 @@ end
 if Ga == Inf; Ga = 1e10; end
 if Gb == Inf; Gb = 1e10; end
 
+% Initial guess of K 
+Kguess = sqrt((1.6*Ga*Gb+4*(Ga+Gb)+7.5)/(Ga+Gb+7.5));
+% Equation 5.14 
+% Unified Design of Steel Structures, 3rd Ed.
+% Geschwindner, Liu, and Carter
+
 % Solve for K
 options.Display = 'off';
 options.TolX = 1e-6;
    
 if Ga == 0
-    [K,~,exitflag] = fsolve(@(K)fcn_with_one_zero(K,Gb),2.0,options);
+    [K,~,exitflag] = fsolve(@(K)fcn_with_one_zero(K,Gb),Kguess,options);
 elseif Gb == 0
-    [K,~,exitflag] = fsolve(@(K)fcn_with_one_zero(K,Ga),2.0,options);
+    [K,~,exitflag] = fsolve(@(K)fcn_with_one_zero(K,Ga),Kguess,options);
 else
-    [K,~,exitflag] = fsolve(@(K)fcn(K,Ga,Gb),2.0,options);
+    [K,~,exitflag] = fsolve(@(K)fcn(K,Ga,Gb),Kguess,options);
 end
 
 if (exitflag < 1)
