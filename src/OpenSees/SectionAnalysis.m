@@ -18,9 +18,7 @@ classdef SectionAnalysis < OpenSeesAnalysis
         function set.section_def(obj,section_def)
             if ischar(section_def)
                 if exist(section_def,'file') == 2
-                    fid = fopen(section_def);
-                    A = textscan(fid,'%s\n','Whitespace','\n');
-                    obj.section_def = A{1};
+                    obj.section_def = strsplit(fileread(section_def),'\n');
                 else
                     obj.section_def = {section_def};
                 end
