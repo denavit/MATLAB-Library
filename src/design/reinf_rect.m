@@ -31,35 +31,8 @@ classdef reinf_rect < reinf
             x = [x1(1:end-1) x2(1:end-1) x3(1:end-1) x4(1:end-1)];
             y = [y1(1:end-1) y2(1:end-1) y3(1:end-1) y4(1:end-1)];
         end
-        function n = nb(obj)
+        function n = num_bars(obj)
             n = 2*(obj.nbx+obj.nby)-4;
-        end
-        function i = I(obj,axis)
-            [x,y] = obj.coordinates();
-            switch lower(axis)
-                case 'x'
-                    i = sum(obj.Ab*y.^2);
-                case 'y'
-                    i = sum(obj.Ab*x.^2);
-                otherwise
-                    error('Unknown axis: %s',axis);
-            end
-        end
-        function plotSection(obj,lineWidth)
-            if nargin < 2
-                lineWidth = 2;
-            end
-            angles = linspace(0,2*pi,25);
-            db = sqrt(4/pi*obj.Ab);
-            circX = (db/2*cos(angles));
-            circY = (db/2*sin(angles));
-            [xb,yb] = obj.coordinates();
-            for i = 1:length(yb)
-                x =  xb(i) + circX;
-                y =  yb(i) + circY;
-                fill(x,y,obj.color_steelFill,'LineStyle','none')
-                plot(x,y,'k-','LineWidth',lineWidth);
-            end
         end
     end
 end

@@ -16,6 +16,9 @@ classdef reinf_bar < reinf
             x = obj.x;
             y = obj.y;
         end
+        function n = num_bars(obj)
+            n = 1;
+        end
     end
     
 end

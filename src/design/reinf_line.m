@@ -5,18 +5,18 @@ classdef reinf_line < reinf
         yi
         xj
         yj
-        nb
+        nspaces
         bar_at_start = true;
         bar_at_end = true;
     end
     
     methods
-        function obj = reinf_line(xi,yi,xj,yj,nb,Ab)
+        function obj = reinf_line(xi,yi,xj,yj,nspaces,Ab)
             obj.xi = xi;
             obj.yi = yi;
             obj.xj = xj;
             obj.yj = yj;
-            obj.nb = nb;
+            obj.nspaces = nspaces;
             obj.Ab = Ab;
         end
         function [x,y] = coordinates(obj)
@@ -30,7 +30,16 @@ classdef reinf_line < reinf
                 x = x(1:(end-1));
                 y = y(1:(end-1));
             end
-        end        
+        end
+        function n = num_bars(obj)
+            n = obj.nspaces + 1;
+            if ~obj.bar_at_start
+                n = n-1;
+            end
+            if ~obj.bar_at_end
+                n = n-1;
+            end
+        end
     end
     
 end
