@@ -10,7 +10,8 @@ classdef RC < structural_shape
         conc_cross_section
         reinforcement
         
-        reinforcement_is_spiral = false;
+        transverse_reinf_type = '';
+
         treat_reinforcement_as_point = true;
     end
     
@@ -84,11 +85,7 @@ classdef RC < structural_shape
             error('Not yet implemented')
         end
         function f = phi(obj,et)
-            if obj.reinforcement_is_spiral
-                f = ACI_phi('spiral',et,obj.fy/obj.Es);
-            else
-                f = ACI_phi('other',et,obj.fy/obj.Es);
-            end
+            f = ACI_phi(obj.transverse_reinf_type,et,obj.fy/obj.Es);
         end
         function [P,M] = sectionInteraction2d(obj,axis,type,quadrant)
             switch lower(strtok(type,'-'))

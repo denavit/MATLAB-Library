@@ -1,9 +1,9 @@
 function phi = ACI_phi(type,et,ety)
 
 switch lower(type)
-    case 'spiral'
+    case {'spiral','spirals'}
         phicc = 0.75;
-    case 'other'
+    case {'other','ties'}
         phicc = 0.65;
     otherwise
         error('Unknown type %s',type)
