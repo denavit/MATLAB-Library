@@ -14,12 +14,20 @@ classdef Circle_Shape < geometric_shape
         function tf = is_section_valid(obj)
             tf = obj.D > 0;    % D should be positive
         end
+        function d = depth(obj,axis)
+            d = obj.D;            
+        end        
         function a = A(obj)
             a = (pi/4)*obj.D^2;
         end
         function i = I(obj,axis)
             i = (pi/64)*obj.D^4;
         end
+        function [x,y,r] = boundary_points(obj)
+            x = 0;
+            y = 0;
+            r = obj.D/2;
+        end        
         function plotSection(obj,lineWidth)
             if nargin < 2
                 lineWidth = 2;
@@ -31,6 +39,10 @@ classdef Circle_Shape < geometric_shape
             fill(x,y,obj.plot_fill_color,'LineStyle','none')
             plot(x,y,'k-','LineWidth',lineWidth);
             axis equal
+        end        
+        function add_to_fiber_section(obj,fiber_section,matID)
+            fiber_section.addPatch('circ',matID,...
+                0.0,0.0,0.0,obj.D/2);
         end        
     end
 end
