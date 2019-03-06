@@ -54,7 +54,7 @@ classdef RC < structural_shape
         function a = Asr(obj)
             a = 0;
             for i = 1:length(obj.reinforcement)
-                a = a + obj.reinforcement{i}.nb*obj.reinforcement{i}.Ab;
+                a = a + obj.reinforcement{i}.num_bars*obj.reinforcement{i}.Ab;
             end
         end
         function i = Ig(obj,axis)
