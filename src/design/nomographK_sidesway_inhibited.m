@@ -1,5 +1,8 @@
 function K = nomographK_sidesway_inhibited(Ga,Gb)
 
+assert(~isnan(Ga),'Invalid input: Ga is NaN');
+assert(~isnan(Gb),'Invalid input: Gb is NaN');
+
 % Check for known solutions
 if Ga == Inf && Gb == Inf
     K = 1.0;
