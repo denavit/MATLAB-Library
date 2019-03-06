@@ -86,10 +86,10 @@ classdef RectangularHSS < structural_shape
         end
         function [d,b] = depth(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'z','x','strong'}
                     d = obj.H;
                     b = obj.B;
-                case 'weak'
+                case {'y','weak'}
                     d = obj.B;
                     b = obj.H;
                 otherwise
@@ -156,12 +156,12 @@ classdef RectangularHSS < structural_shape
         function mn = Mn(obj,axis)
             % Flexural Strength
             switch lower(axis)
-                case 'strong'
+                case {'z','x','strong'}
                     b = obj.B - 2*obj.t;
                     d = obj.H - 2*obj.t;
                     Z = obj.Z('strong');
                     S = obj.I('strong')/(d/2);
-                case 'weak'
+                case {'y','weak'}
                     b = obj.H - 2*obj.t;
                     d = obj.B - 2*obj.t; 
                     Z = obj.Z('weak');
@@ -214,9 +214,9 @@ classdef RectangularHSS < structural_shape
         function vn = Vn(obj,axis) 
             % Shear Strength
             switch lower(axis)
-                case 'strong'
+                case {'z','x','strong'}
                     d = obj.H - 2*obj.t;
-                case 'weak'
+                case {'y','weak'}
                     d = obj.B - 2*obj.t; 
                 otherwise
                     error('Bad axis'); 
@@ -363,9 +363,9 @@ classdef RectangularHSS < structural_shape
             assert(isequal(size(axialStrain),size(curvature)),...
                 'axialStrain and curvature should be the same size');
             switch lower(axis)
-                case 'strong'
+                case {'z','x','strong'}
                     yExtreme = obj.H/2;
-                case 'weak'
+                case {'y','weak'}
                     yExtreme = obj.B/2;
                 otherwise
                     error('Bad axis'); 
