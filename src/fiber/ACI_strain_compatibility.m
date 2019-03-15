@@ -254,7 +254,7 @@ classdef ACI_strain_compatibility < handle
                 My(:,i) = iMy;
             end
         end
-        function results = interaction3d_2(obj,numP,numAngles,numPoints_calc,numAngles_calc)
+        function results = interaction3d_2(obj,numP,numAngles,numPoints_calc,numAngles_calc,type)
             
             if nargin < 4
                 numPoints_calc = 50;
@@ -262,8 +262,18 @@ classdef ACI_strain_compatibility < handle
             if nargin < 5
                 numAngles_calc = 2*numAngles;
             end
+            if nargin < 6
+                type = 'full';
+            end
             
-            angles_calc = linspace(0,2*pi,numAngles_calc+1);
+            switch lower(type)
+                case 'full'
+                    angles_calc = linspace(0,2*pi,numAngles_calc+1);
+                case 'quadrant'
+                    angles_calc = linspace(0,pi/2,numAngles_calc);
+                otherwise
+                    error('Unknown type: %s');
+            end
             
             Mz_calc = nan(numP,numAngles_calc);
             My_calc = nan(numP,numAngles_calc);             
@@ -319,8 +329,17 @@ classdef ACI_strain_compatibility < handle
             results.P  = nan(numP,numAngles);
             results.Mz = nan(numP,numAngles);
             results.My = nan(numP,numAngles);
-            angles = linspace(0,2*pi,numAngles+1);
-            angles = angles(1:(end-1));
+
+            switch lower(type)
+                case 'full'
+                    angles = linspace(0,2*pi,numAngles+1);
+                    angles = angles(1:(end-1));
+                case 'quadrant'
+                    angles = linspace(0,pi/2,numAngles);
+                otherwise
+                    error('Unknown type: %s');
+            end
+            
             for i = 1:numP
                 if i == 1
                     results.P(i,:)  = P_min;
@@ -338,7 +357,7 @@ classdef ACI_strain_compatibility < handle
                     results.My(i,:) = d.*sin(angles);
                 end
             end
-        end        
+        end
     end
 end
 
