@@ -1,8 +1,8 @@
 classdef UniaxialMaterialAnalysis < OpenSeesAnalysis
     
     properties
-        uniaxial_material_def
-        uniaxial_material_tag = 1;
+        uniaxial_material_def       % Material definition. May be a filename, line of code, or multiple lines in a cell vector.
+        uniaxial_material_tag = 1;  % Tag to use for the material. (default: 1)
     end
     
     methods
@@ -33,6 +33,37 @@ classdef UniaxialMaterialAnalysis < OpenSeesAnalysis
         
         %% Run Analysis
         function results = runAnalysis(obj,peakPoints,rateType,rateValue)
+            % runAnalysis  Evaluate the material over the given loading.
+            %
+            %   results = runAnalysis(peakPoints, rateType, rateValue) creates
+            %       a truss with unit area and length, and applies the "strain"
+            %       specified by peakPoints via single-point constraints. If
+            %       rateType is 'StrainRate' or 'Steps', additional points are
+            %       linearly spaced in-between the given peaks.
+            %
+            %   Parameters
+            %   ----------
+            %   peakPoints : vector
+            %       Points that define the loading.
+            %   rateType : char, optional
+            %       Rate method to use. Options (default: 'None'):
+            %       - 'StrainRate' : use rateValue directly as the step between
+            %                        points filled in between peakPoints.
+            %       - 'Steps'      : rateValue specifies the number of steps.
+            %       - 'None'       : No fill-in is performed between points.
+            %   rateValue : double, optional
+            %       Value used to calculate the rate. Behavior is determined by
+            %       rateType. Required if rateType is not 'None'.
+            %   
+            %   Returns
+            %   -------
+            %   results
+            %       struct with fields:
+            %       - textOutput : output from OpenSees
+            %       - status     : description of end state
+            %       - disp       : displacements from the truss
+            %       - force      : axial forces from the truss
+            %
 
             if nargin < 3
                 rateType  = 'None';
