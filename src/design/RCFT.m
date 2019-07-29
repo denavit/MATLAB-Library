@@ -117,10 +117,10 @@ classdef RCFT < structural_shape
         end
         function [d,b] = depth(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'x','z','strong'}
                     d = obj.H;
                     b = obj.B;
-                case 'weak'
+                case {'y','weak'}
                     d = obj.B;
                     b = obj.H;
                 otherwise
@@ -132,10 +132,10 @@ classdef RCFT < structural_shape
         end
         function [t_doubler,Fy_doubler] = doublerPlate(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'x','z','strong'}
                     t_doubler  = obj.t_doubler_strong;
                     Fy_doubler = obj.Fy_doubler_strong;
-                case 'weak'
+                case {'y','weak'}
                     t_doubler  = obj.t_doubler_weak;
                     Fy_doubler = obj.Fy_doubler_weak;
                 otherwise
@@ -160,12 +160,12 @@ classdef RCFT < structural_shape
         end
         function [Pb,Mb] = pointB(obj,axis)
             switch lower(axis)
-                case 'strong'
-                    [~,Md] = obj.pointD('strong');
+                case {'x','z','strong'}
+                    [~,Md] = obj.pointD('x');
                     h1 = obj.Bc;
                     h2 = obj.Hc;
-                case 'weak'
-                    [~,Md] = obj.pointD('weak');
+                case {'y','weak'}
+                    [~,Md] = obj.pointD('y');
                     h1 = obj.Hc;
                     h2 = obj.Bc;
                 otherwise
@@ -179,10 +179,10 @@ classdef RCFT < structural_shape
         end
         function [Pc,Mc] = pointC(obj,axis)
             switch lower(axis)
-                case 'strong'
-                    [~,Mb] = obj.pointB('strong');
-                case 'weak'
-                    [~,Mb] = obj.pointB('weak');
+                case {'x','z','strong'}
+                    [~,Mb] = obj.pointB('x');
+                case {'y','weak'}
+                    [~,Mb] = obj.pointB('y');
                 otherwise
                     error('Bad axis');
             end
@@ -199,14 +199,14 @@ classdef RCFT < structural_shape
         end
         function [Pe,Me] = pointE(obj,axis)
             switch lower(axis)
-                case 'strong'
+                case {'x','z','strong'}
                     h1 = obj.Bc;
                     h2 = obj.Hc;
-                    [~,Md] = obj.pointD('strong');
-                case 'weak'
+                    [~,Md] = obj.pointD('x');
+                case {'y','weak'}
                     h1 = obj.Hc;
                     h2 = obj.Bc;
-                    [~,Md] = obj.pointD('weak');
+                    [~,Md] = obj.pointD('y');
                 otherwise
                     error('Bad axis');
             end
@@ -247,8 +247,8 @@ classdef RCFT < structural_shape
         function [slenderness,lambda,lambdaP,lambdaR,lambdaM] = ...
                 slendernessInCompression(obj)
             lambda = max([...
-                obj.lambda('strong','web') ...
-                obj.lambda('strong','flange')]);
+                obj.lambda('x','web') ...
+                obj.lambda('x','flange')]);
             lambdaP = 2.26*sqrt(obj.Es/obj.Fy);
             lambdaR = 3.00*sqrt(obj.Es/obj.Fy);
             lambdaM = 5.00*sqrt(obj.Es/obj.Fy);
@@ -294,8 +294,8 @@ classdef RCFT < structural_shape
         end
         function tf = isCompact(obj)
             tf = strcmp(obj.slendernessInCompression,'compact') && ...
-                strcmp(obj.slendernessInFlexure('strong'),'compact') && ...
-                strcmp(obj.slendernessInFlexure('weak'),'compact');
+                strcmp(obj.slendernessInFlexure('x'),'compact') && ...
+                strcmp(obj.slendernessInFlexure('y'),'compact');
         end
 
         %% Design Strengths
@@ -339,8 +339,8 @@ classdef RCFT < structural_shape
         function x = stabilityReduction(obj,axis,Po)
             % Stability Reduction
             if strcmpi(axis,'min')
-                x = min([obj.stabilityReduction('strong',Po) ...
-                    obj.stabilityReduction('weak',Po)]);
+                x = min([obj.stabilityReduction('x',Po) ...
+                    obj.stabilityReduction('y',Po)]);
                 return
             end
             Pe = pi^2*obj.EIeff(axis)/(obj.K(axis)*obj.L(axis))^2;
@@ -381,10 +381,10 @@ classdef RCFT < structural_shape
                 mn = Mp;
             else
                 switch lower(axis)
-                    case 'strong'
+                    case {'x','z','strong'}
                         d = obj.H;
                         b = obj.B;
-                    case 'weak'
+                    case {'y','weak'}
                         d = obj.B;
                         b = obj.H;
                     otherwise
@@ -491,8 +491,8 @@ classdef RCFT < structural_shape
             % Compressive Load / Moment Interaction
             if obj.isCompact || obj.neglectLocalBuckling
                 % Use plastic stress distribution method
-                [P_pointCs,M_pointCs] = obj.pointC('strong');
-                [~,M_pointCw] = obj.pointC('weak');
+                [P_pointCs,M_pointCs] = obj.pointC('x');
+                [~,M_pointCw] = obj.pointC('y');
                 x = obj.stabilityReduction('min',obj.Pnco);
                 Pa = phi_Pc*x*obj.Pnco;
                 Pc = phi_Pc*x*(-P_pointCs);
@@ -501,8 +501,8 @@ classdef RCFT < structural_shape
                 ratio_PMc = aisc_PSD_interaction_check(P,Ms,Mw,Pa,Pc,Mcs,Mcw);
             else
                 % Use Chapter H equations
-                Mcs = phi_M*obj.Mn('strong');
-                Mcw = phi_M*obj.Mn('weak');
+                Mcs = phi_M*obj.Mn('x');
+                Mcw = phi_M*obj.Mn('y');
                 Pc = phi_Pc*obj.Pnc('min');
                 ratio_PMc = aisc_H11_interaction_check(P,Ms,Mw,Pc,Mcs,Mcw);
             end
@@ -515,14 +515,14 @@ classdef RCFT < structural_shape
             if isempty(Vs)
                 ratio_Vs = 0;
             else
-                ratio_Vs = max(abs(Vs))/(phi_V*obj.Vn('strong'));
+                ratio_Vs = max(abs(Vs))/(phi_V*obj.Vn('x'));
             end
 
             % Check weak axis shear
             if isempty(Vw)
                 ratio_Vw = 0;
             else
-                ratio_Vw = max(abs(Vw))/(phi_V*obj.Vn('weak'));
+                ratio_Vw = max(abs(Vw))/(phi_V*obj.Vn('y'));
             end
 
             % No check on torsion
@@ -540,14 +540,14 @@ classdef RCFT < structural_shape
                     pass_tf = obj.isCompact;
                 case 'highlyductilesection'
                     lambda = max([...
-                        obj.lambda('strong','web') ...
-                        obj.lambda('strong','flange')]);
+                        obj.lambda('x','web') ...
+                        obj.lambda('x','flange')]);
                     pass_tf = lambda < 1.4*sqrt(obj.Es/obj.Fy);
                     % Also shear strength based on steel section alone
                 case 'slendernessratio_klr'
                     limit = varargin{1};
-                    KLr_strong = obj.K('strong')*obj.L('strong')/sqrt(obj.Is('strong')/obj.As);
-                    KLr_weak = obj.K('weak')*obj.L('weak')/sqrt(obj.Is('weak')/obj.As);
+                    KLr_strong = obj.K('x')*obj.L('x')/sqrt(obj.Is('x')/obj.As);
+                    KLr_weak = obj.K('y')*obj.L('y')/sqrt(obj.Is('y')/obj.As);
                     pass_tf = max([KLr_strong KLr_weak]) < limit;
                 otherwise
                     error('Unknown checkType');
@@ -572,9 +572,9 @@ classdef RCFT < structural_shape
                 case 'aci'
                     scACI = obj.strainCompatibilityAciObject;
                     switch lower(axis)
-                        case 'strong'
+                        case {'x','z','strong'}
                             [P,M,~] = scACI.interactionSweep(0,50);
-                        case 'weak'
+                        case {'y','weak'}
                             [P,~,M] = scACI.interactionSweep(pi/2,50);
                         otherwise
                             error('Bad axis');
@@ -582,9 +582,9 @@ classdef RCFT < structural_shape
                 case 'factoredaci'
                     scACI = obj.strainCompatibilityAciObject;
                     switch lower(axis)
-                        case 'strong'
+                        case {'x','z','strong'}
                             [P,M,~,et] = scACI.interactionSweep(0,50);
-                        case 'weak'
+                        case {'y','weak'}
                             [P,~,M,et] = scACI.interactionSweep(pi/2,50);
                         otherwise
                             error('Bad axis');
