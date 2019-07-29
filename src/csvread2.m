@@ -1,18 +1,24 @@
-function [C,S] = csvread2(filename, delimiter)
+function [C,S] = csvread2(filename, delimiter, skip_lines)
 if nargin < 2
     delimiter = ',';
+end
+if nargin < 3
+    skip_lines = 0;
 end
 
 % Open the text file
 fid = fopen(filename);
 
 % Determine number of columns
+for i = 1:skip_lines
+    fgetl(fid);
+end
 C = textscan(fgetl(fid),'%q','delimiter',delimiter);
 numColumns = length(C{1});
 frewind(fid);
 
 % Read the file using textscan
-C = textscan(fid,repmat('%q',1,numColumns),'delimiter',delimiter,'CollectOutput',true);
+C = textscan(fid,repmat('%q',1,numColumns),'delimiter',delimiter,'CollectOutput',true,'HeaderLines',skip_lines);
 C = C{1};
 
 % Close the text file
