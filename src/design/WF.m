@@ -626,7 +626,7 @@ classdef WF < structural_shape
                     x = obj.Fy;
                 case 'grosssteelflexuralrigidity'
                     x = obj.Es*obj.I(axis);
-                case 'grosssectioncompressionstrength'
+                case {'asfy','grosssteelstrength','grosssectioncompressionstrength'}
                     x = obj.A*obj.Fy;
                 case 'shapefactor'
                     x = obj.Z(axis)/obj.S(axis);
