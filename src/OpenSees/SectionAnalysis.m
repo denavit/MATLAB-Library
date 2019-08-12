@@ -149,8 +149,26 @@ classdef SectionAnalysis < OpenSeesAnalysis
         end
         
         %% 2d Interaction Functions
-        function results = runSectionToPeak2d(obj,loadingType,deformationStep,maxNumSteps,P,numStepsAxial)
+        function results = runSectionToPeak2d(obj,loadingType,deformationStep,maxNumSteps,x,numStepsAxial)
 
+            switch loadingType
+                case 'AxialOnly'
+                    e = 0;
+                    
+                case 'Proportional'
+                    e = x;
+                    
+                case 'Proportional2'
+                    % Same as 'Proportional' but incrementing cruvature not axial strain
+                    e = x;                    
+                    
+                case 'NonProportional'
+                    P = x;
+                    
+                otherwise
+                    error('Unknown loadingType: %s',loadingType);
+            end   
+            
             % Filenames
             filename_input        = fullfile(obj.scratchPath,'sectionAnalysis_Input.tcl');
             filename_output_force = fullfile(obj.scratchPath,'sectionAnalysis_OutputForce.out');
@@ -199,13 +217,28 @@ classdef SectionAnalysis < OpenSeesAnalysis
             fprintf(fid,'}\n');
             
             switch loadingType
-                case 'AxialOnly'
+                case {'AxialOnly','Proportional'}
                     % Axial Loading
                     fprintf(fid,'timeSeries Linear 1 \n');
                     fprintf(fid,'pattern Plain 1 1 { \n');
-                    fprintf(fid,'  load 2 1.0 0.0 0.0 \n');
+                    fprintf(fid,'  load 2 1.0 0.0 %g \n',e);
                     fprintf(fid,'} \n');
                     fprintf(fid,'integrator DisplacementControl 2 1 %g \n',deformationStep);
+                    fprintf(fid,'analysis Static \n');
+                    fprintf(fid,'for {set i 1} {$i <= %i} {incr i} { \n',maxNumSteps);
+                    fprintf(fid,'  set ok [analyze 1] \n');
+                    fprintf(fid,'  if {$ok != 0} { exit 3 } \n');
+                    fprintf(fid,'  set lowestEigen [eigenRecorder {%s} 1 -generalized -fullGenLapack] \n',filename_output_eigen);
+                    fprintf(fid,'  if {$lowestEigen < 0.0} { exit 1 } \n');
+                    fprintf(fid,'} \n');
+                    fprintf(fid,'exit 2 \n');
+                case 'Proportional2'
+                    % Axial Loading
+                    fprintf(fid,'timeSeries Linear 1 \n');
+                    fprintf(fid,'pattern Plain 1 1 { \n');
+                    fprintf(fid,'  load 2 1.0 0.0 %g \n',e);
+                    fprintf(fid,'} \n');
+                    fprintf(fid,'integrator DisplacementControl 2 3 %g \n',deformationStep);
                     fprintf(fid,'analysis Static \n');
                     fprintf(fid,'for {set i 1} {$i <= %i} {incr i} { \n',maxNumSteps);
                     fprintf(fid,'  set ok [analyze 1] \n');
@@ -285,7 +318,7 @@ classdef SectionAnalysis < OpenSeesAnalysis
             force = -1*dlmread(filename_output_force);
             eigen  = dlmread(filename_output_eigen);
             switch loadingType
-                case 'AxialOnly'
+                case {'AxialOnly','Proportional','Proportional2'}
                     startPoint = 1;
                 case 'NonProportional'
                     startPoint = numStepsAxial;
