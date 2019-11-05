@@ -48,8 +48,8 @@ length_base2mm = 25.4;
 
 % Time (Base Unit: seconds, s)
 time_base2s = 1;
-time_base2m = 60;
-time_base2h = 60*60;
+time_base2m = 1/60;
+time_base2h = 1/3600;
 
 % Force (Base Unit: kip)
 force_base2kip = 1;
