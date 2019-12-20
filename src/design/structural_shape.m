@@ -1,10 +1,10 @@
 classdef structural_shape
     
     properties
-        Lx = 0;         % Unbraced length of the member for major axis buckling
-        Ly = 0;         % Unbraced length of the member for minor axis buckling
-        Kx = 1          % Effective length factor in the strong axis
-        Ky = 1          % Effective length factor in the weak axis
+        Lx = 0;         % Unbraced length of the member for flexural buckling about the x axis
+        Ly = 0;         % Unbraced length of the member for flexural buckling about the y axis
+        Kx = 1          % Effective length factor for flexural buckling about the x axis
+        Ky = 1          % Effective length factor for flexural buckling about the y axis
         units = ' ';    % unit system
                         %  - US = United States customary units (i.e., kips, inches, ksi)
                         %  - SI = International System of Units (i.e., N, mm, MPa)
@@ -18,9 +18,9 @@ classdef structural_shape
     methods       
         function l = L(obj,axis)
             switch lower(axis)
-                case {'major','strong'}
+                case {'x','z','major','strong'}
                     l = obj.Lx;
-                case {'minor','weak'}
+                case {'y','minor','weak'}
                     l = obj.Ly;
                 otherwise
                     error('Bad axis');
@@ -28,9 +28,9 @@ classdef structural_shape
         end
         function k = K(obj,axis)
             switch lower(axis)
-                case {'major','strong'}
+                case {'x','z','major','strong'}
                     k = obj.Kx;
-                case {'minor','weak'}
+                case {'y','minor','weak'}
                     k = obj.Ky;
                 otherwise
                     error('Bad axis');
