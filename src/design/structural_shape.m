@@ -3,8 +3,10 @@ classdef structural_shape
     properties
         Lx = 0;         % Unbraced length of the member for flexural buckling about the x axis
         Ly = 0;         % Unbraced length of the member for flexural buckling about the y axis
-        Kx = 1          % Effective length factor for flexural buckling about the x axis
-        Ky = 1          % Effective length factor for flexural buckling about the y axis
+        Lb = 0;         % Unbraced length of the member for lateral-torsional buckling
+        Kx = 1;         % Effective length factor for flexural buckling about the x axis
+        Ky = 1;         % Effective length factor for flexural buckling about the y axis
+        Cb = 1;         % Lateral-torsional buckling modification factor
         units = ' ';    % unit system
                         %  - US = United States customary units (i.e., kips, inches, ksi)
                         %  - SI = International System of Units (i.e., N, mm, MPa)

@@ -28,8 +28,6 @@ classdef WF < structural_shape
         % Information
         shapeName = ''; % Name of the steel shape
         % Design Options
-        Lb = [];
-        Cb = [];
         neglectLocalBuckling = false;
         neglectLateralTorsionalBuckling = false;
     end
@@ -200,19 +198,11 @@ classdef WF < structural_shape
         end        
         function mn = Mn(obj,axis,Cb,Lb)
             % Flexural Strength 
-            if ( nargin < 3 )
-                if isempty(obj.Cb)
-                    Cb = 1;
-                else
-                    Cb = obj.Cb;
-                end
+            if nargin < 3
+                Cb = obj.Cb;
             end
-            if ( nargin < 4 )
-                if isempty(obj.Lb)
-                    Lb = obj.L;
-                else
-                    Lb = obj.Lb;
-                end
+            if nargin < 4
+                Lb = obj.Lb;
             end
             
             if obj.neglectLateralTorsionalBuckling && obj.neglectLocalBuckling
@@ -394,21 +384,12 @@ classdef WF < structural_shape
             phi_Vweak  = 0.90;
             
             % Moment Strengths
-            if isempty(obj.Cb)
-                if isempty(Ms)
-                    Cb = 1;
-                else
-                    Cb = aisc2010.Cb(xi,Ms);
-                end
+            if computeCb
+                Cb = aisc2010.Cb(xi,Ms);
             else
                 Cb = obj.Cb;
             end
-            if isempty(obj.Lb)
-                Lb = obj.L; % If Lb is not defined, assume Lb = L
-            else
-                Lb = obj.Lb;
-            end
-            Mcs = phi_M*obj.Mn('x',Lb,Cb); 
+            Mcs = phi_M*obj.Mn('x',obj.Lb,Cb); 
             Mcw = phi_M*obj.Mn('y');
             
             % Compressive Load / Moment Interaction
