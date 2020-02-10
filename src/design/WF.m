@@ -20,7 +20,7 @@ classdef WF < structural_shape
         Fy          % Steel yield stress
         Fu = [];    % Steel Ultimate Stress
         eu = [];    % Strain at Ultimate Stress
-        Es          % Modulus of Elasticity of Steel
+        E           % Modulus of Elasticity of Steel
         G           % Shear Modulus of Elasticity of Steel
         % Expected Strength Parameters
         Ry = [];
@@ -47,15 +47,15 @@ classdef WF < structural_shape
 
             switch obj.units
                 case 'US'
-                    obj.Es = 29000;
-                    obj.G  = 11200;
+                    obj.E = 29000;
+                    obj.G = 11200;
                 case 'SI'
-                    obj.Es = convertUnits.pressure(29000,'ksi','MPa');
-                    obj.G  = convertUnits.pressure(11200,'ksi','MPa');
+                    obj.E = convertUnits.pressure(29000,'ksi','MPa');
+                    obj.G = convertUnits.pressure(11200,'ksi','MPa');
                 otherwise
-                    warning('WF:badInput','Unknown unit system, setting Es = 0')
-                    obj.Es = 0;
-                    obj.G  = 0;
+                    warning('WF:badInput','Unknown unit system, setting E = 0')
+                    obj.E = 0;
+                    obj.G = 0;
             end
             
         end     
@@ -119,7 +119,7 @@ classdef WF < structural_shape
             end
             
             lambdaf = obj.lambda('x','flange');
-            lambdaRf = 0.56*sqrt(obj.Es/obj.Fy);
+            lambdaRf = 0.56*sqrt(obj.E/obj.Fy);
             if ( lambdaf <= lambdaRf )
                 flangeSlenderness = 'noncompact';
             else 
@@ -127,7 +127,7 @@ classdef WF < structural_shape
             end
             
             lambdaw = obj.lambda('x','web');
-            lambdaRw = 1.49*sqrt(obj.Es/obj.Fy);
+            lambdaRw = 1.49*sqrt(obj.E/obj.Fy);
             if ( lambdaw <= lambdaRw )
                 webSlenderness = 'noncompact';
             else 
@@ -160,10 +160,10 @@ classdef WF < structural_shape
                 end
                 if strcmpi(webSlenderness,'slender')
                     Fe = min([...
-                        pi^2*obj.Es/(obj.K('x')*obj.L('x')/obj.r('x'))^2;
-                        pi^2*obj.Es/(obj.K('y')*obj.L('y')/obj.r('y'))^2]);
+                        pi^2*obj.E/(obj.K('x')*obj.L('x')/obj.r('x'))^2;
+                        pi^2*obj.E/(obj.K('y')*obj.L('y')/obj.r('y'))^2]);
                     f = AISC_column_curve(obj.Fy/Fe)*obj.Fy;
-                    hwe = min([1.92*obj.tw*sqrt(obj.Es/f)*(1-0.34*sqrt(obj.Es/f)/lambdaw) obj.hw]);
+                    hwe = min([1.92*obj.tw*sqrt(obj.E/f)*(1-0.34*sqrt(obj.E/f)/lambdaw) obj.hw]);
                     if hwe < 0
                         hwe = 0;
                     end
@@ -186,7 +186,7 @@ classdef WF < structural_shape
                 return;
             end
             % @todo - add torsional buckling (E4)
-            Fe = pi^2*obj.Es/(obj.K(axis)*obj.L(axis)/obj.r(axis))^2;
+            Fe = pi^2*obj.E/(obj.K(axis)*obj.L(axis)/obj.r(axis))^2;
             Pnco = obj.Pnco;
             pnc = Pnco*AISC_column_curve((Pnco/obj.A)/Fe);
         end
@@ -221,8 +221,8 @@ classdef WF < structural_shape
             end       
             
             lambdaf  = obj.lambda(axis,'flange');
-            lambdaPf = 0.38*sqrt(obj.Es/obj.Fy);
-            lambdaRf = 1.00*sqrt(obj.Es/obj.Fy);
+            lambdaPf = 0.38*sqrt(obj.E/obj.Fy);
+            lambdaRf = 1.00*sqrt(obj.E/obj.Fy);
             if ( lambdaf <= lambdaPf )
                 flangeSlenderness = 'compact';
             elseif ( lambdaf <= lambdaRf )
@@ -232,8 +232,8 @@ classdef WF < structural_shape
             end
                   
             lambdaw  = obj.lambda(axis,'web');
-            lambdaPw = 3.76*sqrt(obj.Es/obj.Fy);
-            lambdaRw = 5.70*sqrt(obj.Es/obj.Fy);
+            lambdaPw = 3.76*sqrt(obj.E/obj.Fy);
+            lambdaRw = 5.70*sqrt(obj.E/obj.Fy);
             if ( lambdaw <= lambdaPw )
                 webSlenderness = 'compact';
             elseif ( lambdaw <= lambdaRw )
@@ -260,17 +260,17 @@ classdef WF < structural_shape
                     ho = obj.d-obj.tf;
                     Cw = obj.I('y')*ho^2/4;
                     rts = sqrt(sqrt(obj.I('y')*Cw)/obj.S('x'));
-                    Lp = 1.76*obj.r('y')*sqrt(obj.Es/obj.Fy);
-                    Lr = 1.95*rts*(obj.Es/0.7/obj.Fy)* ...
+                    Lp = 1.76*obj.r('y')*sqrt(obj.E/obj.Fy);
+                    Lr = 1.95*rts*(obj.E/0.7/obj.Fy)* ...
                         sqrt(obj.J/obj.S(axis)/ho+ ...
-                        sqrt((obj.J/obj.S(axis)/ho)^2+6.76*(0.7*obj.Fy/obj.Es)^2));
+                        sqrt((obj.J/obj.S(axis)/ho)^2+6.76*(0.7*obj.Fy/obj.E)^2));
                     if ( Lb <= Lp )
                         mltb = mp;
                     elseif ( Lb <= Lr )
                         mltb = Cb*( mp - (mp-0.7*obj.Fy*obj.S(axis))*((Lb-Lp)/(Lr-Lp)) );
                         mltb = min([mltb mp]);
                     else
-                        Fcr = Cb*pi^2*obj.Es / (Lb/rts)^2 * ...
+                        Fcr = Cb*pi^2*obj.E / (Lb/rts)^2 * ...
                             sqrt(1+0.078*(obj.J/obj.S(axis)/ho)*(Lb/rts)^2);
                         mltb = Fcr*obj.S(axis);
                         mltb = min([mltb mp]);
@@ -287,7 +287,7 @@ classdef WF < structural_shape
                                 kc = 4/sqrt(lambdaw);
                                 if ( kc < 0.35 ); kc = 0.35; end
                                 if ( kc > 0.76 ); kc = 0.76; end
-                                mcflb = 0.9*obj.Es*kc*obj.S(axis)/lambdaf^2;
+                                mcflb = 0.9*obj.E*kc*obj.S(axis)/lambdaf^2;
                             end
                             mn = min([mp mltb mcflb]);  
                         end
@@ -309,7 +309,7 @@ classdef WF < structural_shape
                         mflb = mp - (mp - 0.7*obj.Fy*obj.S(axis))*...
                             ((lambdaf - lambdaPf)/(lambdaRf - lambdaPf));
                     else 
-                        Fcr = 0.69*obj.Es/lambdaf^2;
+                        Fcr = 0.69*obj.E/lambdaf^2;
                         mflb = Fcr*obj.S(axis);
                     end
                     mn = min([mp mflb]);
@@ -339,15 +339,15 @@ classdef WF < structural_shape
                     error('Bad axis'); 
             end              
 
-            if ( any(strcmpi(axis,{'z','x','major','strong'})) && lambda <= 2.24*sqrt(obj.Es/obj.Fy) )
+            if ( any(strcmpi(axis,{'z','x','major','strong'})) && lambda <= 2.24*sqrt(obj.E/obj.Fy) )
                 Cv = 1;
             else
-                if ( lambda <= 1.10*sqrt(kv*obj.Es/obj.Fy) )
+                if ( lambda <= 1.10*sqrt(kv*obj.E/obj.Fy) )
                     Cv = 1.0;
-                elseif ( lambda <= 1.37*sqrt(kv*obj.Es/obj.Fy) )
-                    Cv = 1.10*sqrt(kv*obj.Es/obj.Fy)/lambda;
+                elseif ( lambda <= 1.37*sqrt(kv*obj.E/obj.Fy) )
+                    Cv = 1.10*sqrt(kv*obj.E/obj.Fy)/lambda;
                 else
-                    Cv = 1.51*obj.Es*kv/lambda^2/obj.Fy;
+                    Cv = 1.51*obj.E*kv/lambda^2/obj.Fy;
                 end
             end
             vn = 0.6*obj.Fy*Aw*Cv;
@@ -361,19 +361,19 @@ classdef WF < structural_shape
                 pnc = min([obj.Pnc_expected('x') obj.Pnc_expected('y')]);
                 return
             end     
-            assert(obj.lambda(axis,'flange') < 0.56*sqrt(obj.Es/obj.Fy),...
+            assert(obj.lambda(axis,'flange') < 0.56*sqrt(obj.E/obj.Fy),...
                 'Pnc_expected not yet implemented for sections with slender flanges');
-            assert(obj.lambda(axis,'web') < 1.49*sqrt(obj.Es/obj.Fy),...
+            assert(obj.lambda(axis,'web') < 1.49*sqrt(obj.E/obj.Fy),...
                 'Pnc_expected not yet implemented for sections with slender webs'); 
             r = sqrt(obj.I(axis)/obj.A);
-            Fe = pi^2*obj.Es/(obj.K(axis)*obj.L/r)^2;
+            Fe = pi^2*obj.E/(obj.K(axis)*obj.L/r)^2;
             Fcre = obj.Ry*obj.Fy*AISC_column_curve(obj.Ry*obj.Fy/Fe);
             pnc = min([obj.Ry*obj.Fy*obj.A 1.14*Fcre*obj.A]);
         end
         function mn = Mn_expected(obj,axis)
-            assert(obj.lambda(axis,'flange') < 0.38*sqrt(obj.Es/obj.Fy),...
+            assert(obj.lambda(axis,'flange') < 0.38*sqrt(obj.E/obj.Fy),...
                 'Pnc_expected not yet implemented for sections with non-compact or slender flanges');
-            assert(obj.lambda(axis,'web') < 3.78*sqrt(obj.Es/obj.Fy),...
+            assert(obj.lambda(axis,'web') < 3.78*sqrt(obj.E/obj.Fy),...
                 'Pnc_expected not yet implemented for sections with non-compact or slender webs');
             % @todo - check unbraced length?
             mn = obj.Ry*obj.Fy*obj.Z(axis);
@@ -386,7 +386,7 @@ classdef WF < structural_shape
             phi_Pc = 0.90;
             phi_M  = 0.90;
             phi_Pt = 0.90;
-            if ( ((obj.d-2*obj.tf)/obj.tw) <= 2.24*sqrt(obj.Es/obj.Fy) )
+            if ( ((obj.d-2*obj.tf)/obj.tw) <= 2.24*sqrt(obj.E/obj.Fy) )
                 phi_Vstrong  = 1.00;
             else
                 phi_Vstrong  = 0.90;
@@ -448,22 +448,22 @@ classdef WF < structural_shape
                     % Web
                     lambdaw = obj.lambda('x','web');
                     if strcmpi(Pu,'brace')
-                        lambdaHDw = 1.49*sqrt(obj.Es/obj.Fy);
+                        lambdaHDw = 1.49*sqrt(obj.E/obj.Fy);
                     else
                         phi_Pc = 0.90;
                         Ca = Pu/(phi_Pc*obj.Pnco);
                         if Ca <= 0.125
-                            lambdaHDw = 2.45*sqrt(obj.Es/obj.Fy)*(1-0.93*Ca);
+                            lambdaHDw = 2.45*sqrt(obj.E/obj.Fy)*(1-0.93*Ca);
                         else
                             lambdaHDw = max([...
-                                0.77*sqrt(obj.Es/obj.Fy)*(2.93-Ca)
-                                1.49*sqrt(obj.Es/obj.Fy)]);
+                                0.77*sqrt(obj.E/obj.Fy)*(2.93-Ca)
+                                1.49*sqrt(obj.E/obj.Fy)]);
                         end
                     end
                     tf_web = lambdaw <= lambdaHDw;
                     % Flange
                     lambdaf = obj.lambda('x','flange');
-                    lambdaHDf = 0.30*sqrt(obj.Es/obj.Fy);
+                    lambdaHDf = 0.30*sqrt(obj.E/obj.Fy);
                     tf_flange = lambdaf <= lambdaHDf;
                     
                     pass_tf = tf_web && tf_flange;
@@ -473,29 +473,29 @@ classdef WF < structural_shape
                     % Web
                     lambdaw = obj.lambda('x','web');
                     if strcmpi(Pu,'brace')
-                        lambdaHDw = 1.49*sqrt(obj.Es/obj.Fy);
+                        lambdaHDw = 1.49*sqrt(obj.E/obj.Fy);
                     else
                         phi_Pc = 0.90;
                         Ca = Pu/(phi_Pc*obj.Pnco);
                         if Ca <= 0.125
-                            lambdaHDw = 3.76*sqrt(obj.Es/obj.Fy)*(1-2.75*Ca);
+                            lambdaHDw = 3.76*sqrt(obj.E/obj.Fy)*(1-2.75*Ca);
                         else
                             lambdaHDw = max([...
-                                1.12*sqrt(obj.Es/obj.Fy)*(2.33-Ca)
-                                1.49*sqrt(obj.Es/obj.Fy)]);
+                                1.12*sqrt(obj.E/obj.Fy)*(2.33-Ca)
+                                1.49*sqrt(obj.E/obj.Fy)]);
                         end
                     end
                     tf_web = lambdaw <= lambdaHDw;
                     % Flange
                     lambdaf = obj.lambda('x','flange');
-                    lambdaHDf = 0.38*sqrt(obj.Es/obj.Fy);
+                    lambdaHDf = 0.38*sqrt(obj.E/obj.Fy);
                     tf_flange = lambdaf <= lambdaHDf;
                     
                     pass_tf = tf_web && tf_flange;  
                 case 'moderatelyductilebracespacing'
-                    pass_tf = obj.L('y') < 0.17*obj.r('y')*obj.Es/obj.Fy;
+                    pass_tf = obj.L('y') < 0.17*obj.r('y')*obj.E/obj.Fy;
                 case 'highlyductilebracespacing'
-                    pass_tf = obj.L('y') < 0.086*obj.r('y')*obj.Es/obj.Fy;
+                    pass_tf = obj.L('y') < 0.086*obj.r('y')*obj.E/obj.Fy;
                 case 'slendernessratio_klr'
                     limit = varargin{1};                    
                     KLr_x = obj.K('x')*obj.L('x')/obj.r('x');
@@ -539,7 +539,7 @@ classdef WF < structural_shape
                 obj,axis,type)
             switch lower(type)
                 case {'gross','columnstrength'}
-                    E = obj.Es;
+                    E = obj.E;
                     A = obj.A;
                     I = obj.I(axis);
                 otherwise
@@ -549,7 +549,7 @@ classdef WF < structural_shape
         function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             switch lower(type)
                 case {'gross','columnstrength'}
-                    E  = obj.Es;
+                    E  = obj.E;
                     A  = obj.A;
                     Iz = obj.I('z');
                     Iy = obj.I('y');
@@ -625,7 +625,7 @@ classdef WF < structural_shape
                 case 'steelstrength'
                     x = obj.Fy;
                 case 'grosssteelflexuralrigidity'
-                    x = obj.Es*obj.I(axis);
+                    x = obj.E*obj.I(axis);
                 case {'asfy','grosssteelstrength','grosssectioncompressionstrength'}
                     x = obj.A*obj.Fy;
                 case 'shapefactor'
