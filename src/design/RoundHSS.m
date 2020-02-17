@@ -62,6 +62,9 @@ classdef RoundHSS < structural_shape
         function S = S(obj,~)
             S = (pi/32)*(obj.D^4-obj.Di^4)/obj.D;
         end
+        function radius = r(obj,~)
+            radius = (1/4)*sqrt(obj.D^2+obj.Di^2);
+        end
         function j = J(obj)
             j = (pi/32)*(obj.D^4-obj.Di^4);
         end

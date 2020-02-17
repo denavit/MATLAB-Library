@@ -75,7 +75,11 @@ classdef RectangularHSS < structural_shape
         function s = S(obj,axis)
             shp = Rectangular_Tube_Shape(obj.H,obj.B,obj.t,obj.ro);
             s = shp.S(axis);
-        end         
+        end      
+        function radius = r(obj,axis)
+            shp = Rectangular_Tube_Shape(obj.H,obj.B,obj.t,obj.ro);
+            radius = shp.r(axis);
+        end        
         function z = Z(obj,axis)
             shp = Rectangular_Tube_Shape(obj.H,obj.B,obj.t,obj.ro);
             z = shp.Z(axis); 
