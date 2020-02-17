@@ -72,6 +72,9 @@ classdef CCFT < structural_shape
             area = (pi/4)*(obj.D)^2;
         end
         function inertia = Is(obj,axis)
+        function r = rho(obj)
+            r = obj.As/obj.Ag;
+        end
             inertia = (pi/64)*(obj.D)^4 - obj.Ic;
         end
         function inertia = Ic(obj,axis)
