@@ -19,7 +19,7 @@ classdef RectangularHSS < structural_shape
         % Material Properties
         Fy              % Yield stress of the steel tube
         Fu = [];        % Ultimate stress of the steel tube
-        Es              % Modulus of Elasticity of Steel 
+        E               % Modulus of Elasticity of Steel 
         G               % Shear Modulus of Elasticity of Steel
         % Expected Strength Parameters
         Ry = [];
@@ -44,15 +44,15 @@ classdef RectangularHSS < structural_shape
             
             switch obj.units
                 case 'US'
-                    obj.Es = 29000;
-                    obj.G  = 11200;
+                    obj.E = 29000;
+                    obj.G = 11200;
                 case 'SI'
-                    obj.Es = convertUnits.pressure(29000,'ksi','MPa');
-                    obj.G  = convertUnits.pressure(11200,'ksi','MPa');
+                    obj.E = convertUnits.pressure(29000,'ksi','MPa');
+                    obj.G = convertUnits.pressure(11200,'ksi','MPa');
                 otherwise
-                    warning('Design:Input','Unknown unit system, setting Es = 0')
-                    obj.Es = 0;
-                    obj.G  = 0;
+                    warning('Design:Input','Unknown unit system, setting E = 0')
+                    obj.E = 0;
+                    obj.G = 0;
             end
         end
         
@@ -111,20 +111,20 @@ classdef RectangularHSS < structural_shape
             flangeSlenderness = obj.B/obj.t-3;
             webSlenderness = obj.H/obj.t-3;
 
-            if ( max([flangeSlenderness webSlenderness]) < 1.40*sqrt(obj.Es/obj.Fy) )
+            if ( max([flangeSlenderness webSlenderness]) < 1.40*sqrt(obj.E/obj.Fy) )
                 % Without slender elements
                 pnco = obj.Fy*obj.A;
             else
                 % With slender elements
                 f = obj.Fy;  % conservative assumption given in user note
-                if ( webSlenderness > 1.40*sqrt(obj.Es/obj.Fy) ) 
-                    he = 1.92*obj.t*sqrt(obj.Es/f)*(1-0.34/webSlenderness*sqrt(obj.Es/f));
+                if ( webSlenderness > 1.40*sqrt(obj.E/obj.Fy) ) 
+                    he = 1.92*obj.t*sqrt(obj.E/f)*(1-0.34/webSlenderness*sqrt(obj.E/f));
                     he = min([obj.H he]);
                 else
                     he = obj.H;
                 end
-                if ( flangeSlenderness > 1.40*sqrt(obj.Es/obj.Fy) ) 
-                    be = 1.92*obj.t*sqrt(obj.Es/f)*(1-0.34/flangeSlenderness*sqrt(obj.Es/f));
+                if ( flangeSlenderness > 1.40*sqrt(obj.E/obj.Fy) ) 
+                    be = 1.92*obj.t*sqrt(obj.E/f)*(1-0.34/flangeSlenderness*sqrt(obj.E/f));
                     be = min([obj.B be]);
                 else
                     be = obj.B;
@@ -141,7 +141,7 @@ classdef RectangularHSS < structural_shape
                 return
             end
             r = sqrt(obj.I(axis)/obj.A);
-            Fe = pi^2*obj.Es/(obj.K(axis)*obj.L(axis)/r)^2;
+            Fe = pi^2*obj.E/(obj.K(axis)*obj.L(axis)/r)^2;
             Pnco = obj.Pnco;
             pn = Pnco*AISC_column_curve((Pnco/obj.A)/Fe);          
         end
@@ -178,16 +178,16 @@ classdef RectangularHSS < structural_shape
             mp = Z*obj.Fy;
             
             flangeSlenderness = b/obj.t-3;
-            if ( flangeSlenderness < 1.12*sqrt(obj.Es/obj.Fy) )
+            if ( flangeSlenderness < 1.12*sqrt(obj.E/obj.Fy) )
                 % Compact Flange
                 mnFLB = mp;
-            elseif ( flangeSlenderness < 1.40*sqrt(obj.Es/obj.Fy) )
+            elseif ( flangeSlenderness < 1.40*sqrt(obj.E/obj.Fy) )
                 % Noncompact Flange
-                mnFLB = mp - (mp-obj.Fy*S)*(3.57*(b/obj.t)*sqrt(obj.Es/obj.Fy)-4.0);
+                mnFLB = mp - (mp-obj.Fy*S)*(3.57*(b/obj.t)*sqrt(obj.E/obj.Fy)-4.0);
                 mnFLB = min([mp mnFLB]);
             else
                 % Slender Flange
-                be = 1.92*obj.t*sqrt(obj.Es/obj.Fy)*(1-0.38/(b/obj.t)*sqrt(obj.Es/obj.Fy));
+                be = 1.92*obj.t*sqrt(obj.E/obj.Fy)*(1-0.38/(b/obj.t)*sqrt(obj.E/obj.Fy));
                 be = min([b be]);
                 Ieff = sectionProperties('Iy','RoundedRectangularTube',be,d,obj.t,2*obj.t);
                 Seff = Ieff/(d/2);
@@ -195,13 +195,13 @@ classdef RectangularHSS < structural_shape
             end
             
             webSlenderness = d/obj.t-3;
-            if ( webSlenderness < 2.42*sqrt(obj.Es/obj.Fy) )
+            if ( webSlenderness < 2.42*sqrt(obj.E/obj.Fy) )
                 % Compact Web
                 mnWLB = mp;
-            elseif ( webSlenderness < 5.70*sqrt(obj.Es/obj.Fy) )
+            elseif ( webSlenderness < 5.70*sqrt(obj.E/obj.Fy) )
                 % Noncompact Web
                 h = d-3*obj.t;
-                mnWLB = mp - (mp-obj.Fy*S)*(0.305*(h/obj.t)*sqrt(obj.Es/obj.Fy)-0.738);
+                mnWLB = mp - (mp-obj.Fy*S)*(0.305*(h/obj.t)*sqrt(obj.E/obj.Fy)-0.738);
                 mnFLB = min([mp mnFLB]);
             else
                 % Slender Web
@@ -225,12 +225,12 @@ classdef RectangularHSS < structural_shape
             h = d-4*obj.t;
             Aw = 2*h*obj.t;
             kv = 5;
-            if ( h/obj.t <= 1.10*sqrt(kv*obj.Es/obj.Fy) )
+            if ( h/obj.t <= 1.10*sqrt(kv*obj.E/obj.Fy) )
                 Cv = 1.0;
-            elseif ( h/obj.t <= 1.37*sqrt(kv*obj.Es/obj.Fy) )
-                Cv = 1.10*sqrt(kv*obj.Es/obj.Fy)/(h/obj.t);
+            elseif ( h/obj.t <= 1.37*sqrt(kv*obj.E/obj.Fy) )
+                Cv = 1.10*sqrt(kv*obj.E/obj.Fy)/(h/obj.t);
             else
-                Cv = 1.51*obj.Es*kv/((h/obj.t)^2*obj.Fy);
+                Cv = 1.51*obj.E*kv/((h/obj.t)^2*obj.Fy);
             end
             vn = 0.6*obj.Fy*Aw*Cv;
         end
@@ -244,10 +244,10 @@ classdef RectangularHSS < structural_shape
             end
             flangeSlenderness = obj.B/obj.t-3;
             webSlenderness = obj.H/obj.t-3;
-            assert(max([flangeSlenderness webSlenderness]) < 1.40*sqrt(obj.Es/obj.Fy),...
+            assert(max([flangeSlenderness webSlenderness]) < 1.40*sqrt(obj.E/obj.Fy),...
                 'Pnc_expected not yet implemented for tubes with slender elements');
             r = sqrt(obj.I(axis)/obj.A);
-            Fe = pi^2*obj.Es/(obj.K(axis)*obj.L(axis)/r)^2;
+            Fe = pi^2*obj.E/(obj.K(axis)*obj.L(axis)/r)^2;
             Fcre = obj.Ry*obj.Fy*AISC_column_curve(obj.Ry*obj.Fy/Fe);
             pnc = min([obj.Ry*obj.Fy*obj.A 1.14*Fcre*obj.A]);
         end
@@ -297,9 +297,9 @@ classdef RectangularHSS < structural_shape
         function pass_tf = proportioningCheck(obj,checkType,varargin)
             switch lower(checkType)
                 case 'highlyductilesection'                   
-                    pass_tf = max([obj.B/obj.t-3 obj.H/obj.t-3]) < 0.55*sqrt(obj.Es/obj.Fy);
+                    pass_tf = max([obj.B/obj.t-3 obj.H/obj.t-3]) < 0.55*sqrt(obj.E/obj.Fy);
                 case 'moderatelyductilesection'                   
-                    pass_tf = max([obj.B/obj.t-3 obj.H/obj.t-3]) < 0.64*sqrt(obj.Es/obj.Fy);
+                    pass_tf = max([obj.B/obj.t-3 obj.H/obj.t-3]) < 0.64*sqrt(obj.E/obj.Fy);
                 case 'slendernessratio_klr'
                     limit = varargin{1};
                     KLr_strong = obj.K('strong')*obj.L('strong')/sqrt(obj.I('strong')/obj.A);
@@ -339,7 +339,7 @@ classdef RectangularHSS < structural_shape
                 obj,axis,type)
             switch lower(type)
                 case {'gross','columnstrength'}
-                    E = obj.Es;
+                    E = obj.E;
                     A = obj.A;
                     I = obj.I(axis);
                 otherwise
@@ -349,7 +349,7 @@ classdef RectangularHSS < structural_shape
         function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             switch lower(type)
                 case {'gross','columnstrength'}
-                    E  = obj.Es;
+                    E  = obj.E;
                     A  = obj.A;
                     Iz = obj.I('strong');
                     Iy = obj.I('weak');
@@ -440,7 +440,7 @@ classdef RectangularHSS < structural_shape
                 case 'steelstrength'
                     x = obj.Fy;
                 case 'grosssteelflexuralrigidity'
-                    x = obj.Es*obj.I(axis);
+                    x = obj.E*obj.I(axis);
                 case 'grosssectioncompressionstrength'
                     x = obj.A*obj.Fy;
                 case 'shapefactor'

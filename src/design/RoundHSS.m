@@ -16,7 +16,7 @@ classdef RoundHSS < structural_shape
         % Material Properties
         Fy              % Yield stress of the steel tube
         Fu = [];        % Ultimate stress of the steel tube
-        Es              % Modulus of Elasticity of Steel 
+        E               % Modulus of Elasticity of Steel 
         G               % Shear Modulus of Elasticity of Steel
         % Expected Strength Parameters
         Ry = [];
@@ -37,15 +37,15 @@ classdef RoundHSS < structural_shape
             
             switch obj.units
                 case 'US'
-                    obj.Es = 29000;
-                    obj.G  = 11200;
+                    obj.E = 29000;
+                    obj.G = 11200;
                 case 'SI'
-                    obj.Es = convertUnits.pressure(29000,'ksi','MPa');
-                    obj.G  = convertUnits.pressure(11200,'ksi','MPa');
+                    obj.E = convertUnits.pressure(29000,'ksi','MPa');
+                    obj.G = convertUnits.pressure(11200,'ksi','MPa');
                 otherwise
-                    warning('Design:Input','Unknown unit system, setting Es = 0')
-                    obj.Es = 0;
-                    obj.G  = 0;
+                    warning('Design:Input','Unknown unit system, setting E = 0')
+                    obj.E = 0;
+                    obj.G = 0;
             end
         end
         
@@ -82,12 +82,12 @@ classdef RoundHSS < structural_shape
             
             tubeSlenderness = obj.D/obj.t;
 
-            if tubeSlenderness < 0.11*obj.Es/obj.Fy
+            if tubeSlenderness < 0.11*obj.E/obj.Fy
                 % Without slender elements
                 pnco = obj.Fy*obj.A;
-            elseif tubeSlenderness < 0.45*obj.Es/obj.Fy
+            elseif tubeSlenderness < 0.45*obj.E/obj.Fy
                 % With slender elements
-                Q = (0.038*obj.Es)/(obj.Fy*(obj.D/obj.t)) + 2/3;
+                Q = (0.038*obj.E)/(obj.Fy*(obj.D/obj.t)) + 2/3;
                 pnco = Q*obj.Fy*obj.A;  
             else
                 pnco = 0;
@@ -103,7 +103,7 @@ classdef RoundHSS < structural_shape
                 return;
             end
             r = sqrt(obj.I(axis)/obj.A);
-            Fe = pi^2*obj.Es/(obj.K(axis)*obj.L/r)^2;
+            Fe = pi^2*obj.E/(obj.K(axis)*obj.L/r)^2;
             Pnco = obj.Pnco;
             pn = Pnco*AISC_column_curve((Pnco/obj.A)/Fe);          
         end
@@ -126,16 +126,16 @@ classdef RoundHSS < structural_shape
             
             tubeSlenderness = obj.D/obj.t;
 
-            if tubeSlenderness < 0.07*obj.Es/obj.Fy
+            if tubeSlenderness < 0.07*obj.E/obj.Fy
                 % Compact Tube
                 mn = mp;
-            elseif tubeSlenderness < 0.31*obj.Es/obj.Fy
+            elseif tubeSlenderness < 0.31*obj.E/obj.Fy
                 % Noncompact Tube
-                mnLB = ((0.021*obj.Es)/(obj.D/obj.t) + obj.Fy)*obj.S(axis);
+                mnLB = ((0.021*obj.E)/(obj.D/obj.t) + obj.Fy)*obj.S(axis);
                 mn = min([mp mnLB]);
             else
                 % Slender Tube
-                Fcr = (0.33*obj.Es)/(obj.D/obj.t);
+                Fcr = (0.33*obj.E)/(obj.D/obj.t);
                 mnLB = Fcr*obj.S(axis); 
                 mn = min([mp mnLB]);
             end
@@ -145,8 +145,8 @@ classdef RoundHSS < structural_shape
             if nargin < 3
                 Lv = Inf;
             end 
-            Fcr1 = (1.60*obj.Es)/(sqrt(Lv/obj.D)*(obj.D/obj.t)^5/4);
-            Fcr2 = (0.78*obj.Es)/(obj.D/obj.t)^3/2;
+            Fcr1 = (1.60*obj.E)/(sqrt(Lv/obj.D)*(obj.D/obj.t)^5/4);
+            Fcr2 = (0.78*obj.E)/(obj.D/obj.t)^3/2;
             Fcr = min([max([Fcr1 Fcr2]) 0.6*obj.Fy]);
             vn = Fcr*obj.A/2;
         end
@@ -159,10 +159,10 @@ classdef RoundHSS < structural_shape
                 return
             end
             tubeSlenderness = obj.D/obj.t;
-            assert(tubeSlenderness < 0.11*obj.Es/obj.Fy,...
+            assert(tubeSlenderness < 0.11*obj.E/obj.Fy,...
                 'Pnc_expected not yet implemented for tubes with slender elements');
             r = sqrt(obj.I(axis)/obj.A);
-            Fe = pi^2*obj.Es/(obj.K(axis)*obj.L/r)^2;
+            Fe = pi^2*obj.E/(obj.K(axis)*obj.L/r)^2;
             Fcre = obj.Ry*obj.Fy*AISC_column_curve(obj.Ry*obj.Fy/Fe);
             pnc = min([obj.Ry*obj.Fy*obj.A 1.14*Fcre*obj.A]);
         end
@@ -212,9 +212,9 @@ classdef RoundHSS < structural_shape
         function pass_tf = proportioningCheck(obj,checkType,varargin)
             switch lower(checkType)
                 case 'highlyductilesection'                   
-                    pass_tf = obj.D/obj.t < 0.038*obj.Es/obj.Fy;
+                    pass_tf = obj.D/obj.t < 0.038*obj.E/obj.Fy;
                 case 'moderatelyductilesection'                   
-                    pass_tf = obj.D/obj.t < 0.044*obj.Es/obj.Fy;
+                    pass_tf = obj.D/obj.t < 0.044*obj.E/obj.Fy;
                 case 'slendernessratio_klr'
                     limit = varargin{1};
                     KLr_strong = obj.Kstrong*obj.L/sqrt(obj.I('strong')/obj.A);
@@ -254,7 +254,7 @@ classdef RoundHSS < structural_shape
                 obj,axis,type)
             switch lower(type)
                 case {'gross','columnstrength'}
-                    E = obj.Es;
+                    E = obj.E;
                     A = obj.A;
                     I = obj.I(axis);
                 otherwise
@@ -264,7 +264,7 @@ classdef RoundHSS < structural_shape
         function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             switch lower(type)
                 case {'gross','columnstrength'}
-                    E  = obj.Es;
+                    E  = obj.E;
                     A  = obj.A;
                     Iz = obj.I('strong');
                     Iy = obj.I('weak');
@@ -304,7 +304,7 @@ classdef RoundHSS < structural_shape
                 case 'steelstrength'
                     x = obj.Fy;
                 case 'grosssteelflexuralrigidity'
-                    x = obj.Es*obj.I(axis);
+                    x = obj.E*obj.I(axis);
                 case 'grosssectioncompressionstrength'
                     x = obj.A*obj.Fy;
                 case 'shapefactor'
