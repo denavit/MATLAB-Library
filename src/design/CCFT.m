@@ -407,24 +407,10 @@ classdef CCFT < structural_shape
                     [P,M] = psdSectionInteraction2d(obj,axis,quadrant,type);
                 case 'aci'
                     scACI = obj.strainCompatibilityAciObject;
-                    switch lower(axis)
-                        case 'strong'
-                            [P,M,~] = scACI.interactionSweep(0,50);
-                        case 'weak'
-                            [P,~,M] = scACI.interactionSweep(pi/2,50);
-                        otherwise
-                            error('Bad axis');
-                    end 
+                    [P,M,~] = scACI.interactionSweep(0,100); % axis does not matter
                 case 'factoredaci'
                     scACI = obj.strainCompatibilityAciObject;
-                    switch lower(axis)
-                        case 'strong'
-                            [P,M,~,et] = scACI.interactionSweep(0,50);
-                        case 'weak'
-                            [P,~,M,et] = scACI.interactionSweep(pi/2,50);
-                        otherwise
-                            error('Bad axis');
-                    end 
+                    [P,M,~,et] = scACI.interactionSweep(0,100); % axis does not matter
                     phi = ACI_phi('other',et,obj.Fy/obj.Es);
                     P = phi.*P;
                     M = phi.*M;
@@ -482,7 +468,7 @@ classdef CCFT < structural_shape
                         'Unknown quadrant');
                     [cp,cm] = obj.I51Parameters;
                     P = -[1 cp 0]'*0.75*obj.Pnc(axis);
-                    M =  [0 cm 1]'*0.9*obj.Mn(axis);                    
+                    M =  [0 cm 1]'*0.9*obj.Mn(axis);
                 case 'trial'
                     [P,M] = trial_interaction_diagram(obj,axis,quadrant,type(7:end),false);
                 case 'factoredtrial'
