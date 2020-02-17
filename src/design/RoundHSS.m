@@ -53,19 +53,19 @@ classdef RoundHSS < structural_shape
         function A = A(obj)
             A = (pi/4)*(obj.D^2-obj.Di^2);
         end
-        function I = I(obj,axis)
+        function I = I(obj,~)
             I = (pi/64)*(obj.D^4-obj.Di^4);
         end   
-        function Z = Z(obj,axis)
+        function Z = Z(obj,~)
             Z = (1/6)*(obj.D^3-obj.Di^3);
         end
-        function S = S(obj,axis)
+        function S = S(obj,~)
             S = (pi/32)*(obj.D^4-obj.Di^4)/obj.D;
         end
         function j = J(obj)
             j = (pi/32)*(obj.D^4-obj.Di^4);
         end
-        function d = depth(obj,axis)
+        function d = depth(obj,~)
             d = obj.D;
         end
         function d = Di(obj)
@@ -140,7 +140,7 @@ classdef RoundHSS < structural_shape
                 mn = min([mp mnLB]);
             end
         end
-        function vn = Vn(obj,axis,Lv) 
+        function vn = Vn(obj,~,Lv) 
             % Shear Strength           
             if nargin < 3
                 Lv = Inf;
@@ -168,7 +168,7 @@ classdef RoundHSS < structural_shape
         end
         
         %% Design Checks
-        function ratio = interactionCheck(obj,xi,P,Ms,Mw,Vs,Vw,T)
+        function ratio = interactionCheck(obj,~,P,Ms,Mw,Vs,Vw,T)
             
             % Resistance factors
             phi_Pc = 0.90;
@@ -333,11 +333,11 @@ classdef RoundHSS < structural_shape
             fs = fiberSection;
             fs.addPatch('circ',id,0,0,obj.Di/2,obj.D/2);
         end
-        function psd = plasticStressDistributionObject(obj)
+        function psd_obj = plasticStressDistributionObject(obj)
             idSteel = 1;
             fs = obj.fiberSectionObject(idSteel);
-            psd = plastic_stress_distribution(fs);       
-            psd.addMaterial(idSteel,obj.Fy,-obj.Fy);
+            psd_obj = plastic_stress_distribution(fs);       
+            psd_obj.addMaterial(idSteel,obj.Fy,-obj.Fy);
         end
         function plotSection(obj,lineWidth)
             if nargin < 2
