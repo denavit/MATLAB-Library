@@ -71,19 +71,19 @@ classdef CCFT < structural_shape
         function area = Ag(obj)
             area = (pi/4)*(obj.D)^2;
         end
-        function inertia = Is(obj,axis)
         function r = rho(obj)
             r = obj.As/obj.Ag;
         end
+        function inertia = Is(obj,~)
             inertia = (pi/64)*(obj.D)^4 - obj.Ic;
         end
-        function inertia = Ic(obj,axis)
+        function inertia = Ic(obj,~)
             inertia = (pi/64)*(obj.D-2*obj.t)^4;
         end
-        function inertia = Ig(obj,axis)
+        function inertia = Ig(obj,~)
             inertia = (pi/64)*(obj.D)^4;
         end
-        function d = depth(obj,axis)
+        function d = depth(obj,~)
             d = obj.D;
         end
         function p = interfacePerimeter(obj)
@@ -91,11 +91,11 @@ classdef CCFT < structural_shape
         end
 
         %% Plastic Stress Distribution Anchor Points
-        function [Pa,Ma] = pointA(obj,axis)
+        function [Pa,Ma] = pointA(obj,~)
             Pa = -(obj.As*obj.Fy + obj.C2*obj.fc*obj.Ac);
             Ma = 0;
         end
-        function [Pb,Mb] = pointB(obj,axis)
+        function [Pb,Mb] = pointB(obj,~)
             h = obj.D-2*obj.t;
             rm = (obj.D-obj.t)/2;
             Kc = obj.fc*h^2;
@@ -108,19 +108,19 @@ classdef CCFT < structural_shape
             Mb = ZsB*obj.Fy + 0.5*ZcB*obj.C2*obj.fc;
             Pb = 0;
         end
-        function [Pc,Mc] = pointC(obj,axis)
+        function [Pc,Mc] = pointC(obj,~)
             [~,Mb] = obj.pointB;
             Pc = -(obj.C2*obj.fc*obj.Ac);
             Mc = Mb;
         end
-        function [Pd,Md] = pointD(obj,axis)
+        function [Pd,Md] = pointD(obj,~)
             h = obj.D-2*obj.t;
             Zc = h^3/6;
             Zs = obj.D^3/6 - Zc;
             Pd = -(obj.C2*obj.fc*obj.Ac/2);
             Md = Zs*obj.Fy + 0.5*Zc*obj.C2*obj.fc;
         end
-        function [Pe,Me] = pointE(obj,axis,type)
+        function [Pe,Me] = pointE(obj,~,type)
             if nargin < 3
                 type = 'proposed';
             end
@@ -249,7 +249,7 @@ classdef CCFT < structural_shape
                     error('Unknown option_EI: %s',obj.option_EI);
             end            
         end
-        function eieff = EIeff(obj,axis)
+        function eieff = EIeff(obj,~)
             eieff = obj.Es*obj.Is + obj.C3*obj.Ec*obj.Ic;
         end
         function x = stabilityReduction(obj,axis,Po)
@@ -316,7 +316,7 @@ classdef CCFT < structural_shape
         end
 
         %% Design Checks
-        function ratio = interactionCheck(obj,xi,P,Ms,Mw,Vs,Vw,T)
+        function ratio = interactionCheck(obj,~,P,Ms,Mw,Vs,Vw,T)
 
             % Resistance Factors
             phi_Pc = 0.75;
@@ -538,7 +538,7 @@ classdef CCFT < structural_shape
             error('Not yet implemented');
             % @todo
         end
-        function strain = longitudinalStrain2d(obj,axis,axialStrain,curvature,type)
+        function strain = longitudinalStrain2d(obj,~,axialStrain,curvature,type)
             assert(isequal(size(axialStrain),size(curvature)),...
                 'axialStrain and curvature should be the same size');
 
@@ -565,7 +565,7 @@ classdef CCFT < structural_shape
                     error('Unknown type');
             end
         end
-        function x = getSectionData(obj,type,axis)
+        function x = getSectionData(obj,type,~)
             switch lower(type)
                 case 'steelarea'
                     x = obj.As;
@@ -613,13 +613,13 @@ classdef CCFT < structural_shape
             fs = fiberSection;
             fs.addCCFT(idSteel,idConc,obj.D,obj.t);
         end
-        function psd = plasticStressDistributionObject(obj)
+        function psd_obj = plasticStressDistributionObject(obj)
             idSteel = 1;
             idConc  = 2;
             fs = obj.fiberSectionObject(idSteel,idConc);
-            psd = plastic_stress_distribution(fs);
-            psd.addMaterial(idSteel,obj.Fy,-obj.Fy);
-            psd.addMaterial(idConc,0.0,-obj.C2*obj.fc);
+            psd_obj = plastic_stress_distribution(fs);
+            psd_obj.addMaterial(idSteel,obj.Fy,-obj.Fy);
+            psd_obj.addMaterial(idConc,0.0,-obj.C2*obj.fc);
         end
         function ess = elasticSectionStiffnessObject(obj)
             idSteel = 1;
