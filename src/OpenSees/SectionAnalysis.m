@@ -3,6 +3,12 @@ classdef SectionAnalysis < OpenSeesAnalysis
     properties
         section_def
         section_tag = 1;
+
+        % Method for getting the fiber discretization ('json' or 'legacy');
+        % 'json' works with more recent versions of OpenSees, but not with all
+        % materials. 'legacy' works only with older versions of OpenSees, but
+        % should work regardless of material. (default: 'json')
+        fiber_discretization_method = 'json'
     end
     
     methods
@@ -28,13 +34,21 @@ classdef SectionAnalysis < OpenSeesAnalysis
                 error('section_def should be a cell vector');
             end
         end
+        function set.fiber_discretization_method(obj, method)
+            switch lower(method)
+                case 'legacy'
+                case 'json'
+                otherwise; error('Method must be one of: {''legacy'', ''json''}')
+            end
+            obj.fiber_discretization_method = lower(method);
+        end
         
         %% Section Discretization Functions
         function [fiberLocZ,fiberLocY,fiberArea,fiberMat] = getDiscretization(obj)
             
             % Filenames to use
-            filename_input = obj.scratchFile('SectionAnalyis_getDiscretization_InputFile.tcl');
-            filename_print = obj.scratchFile('SectionAnalyis_getDiscretization_PrintFile.txt');
+            filename_input = obj.scratchFile('SectionAnalysis_getDiscretization_InputFile.tcl');
+            filename_print = obj.scratchFile('SectionAnalysis_getDiscretization_PrintFile.txt');
             
             % Create Tcl File
             myFile = fopen(filename_input,'w');
@@ -45,7 +59,12 @@ classdef SectionAnalysis < OpenSeesAnalysis
             fprintf(myFile, 'node 1 0.0 0.0 0.0\n');
             fprintf(myFile, 'node 2 0.0 0.0 0.0\n');            
             fprintf(myFile, 'element zeroLengthSection 1 1 2 %i \n',obj.section_tag);
-            fprintf(myFile, 'print {%s} -ele -flag 3 1\n',obj.path_for_tcl(filename_print));
+            switch obj.fiber_discretization_method
+                case 'legacy'
+                    fprintf(myFile, 'print {%s} -ele -flag 3 1\n',obj.path_for_tcl(filename_print));
+                case 'json'
+                    fprintf(myFile, 'print -JSON -file {%s}\n', obj.path_for_tcl(filename_print));
+            end
             fprintf(myFile, 'exit 2 \n');
             fclose(myFile);
                        
@@ -62,13 +81,23 @@ classdef SectionAnalysis < OpenSeesAnalysis
                     error('Analysis Failed in Unknown Manner (exit code: %i)',status);
             end            
 
-            % Read Results           
-            C = dlmread(filename_print,' ',4,0);
-            fiberMat  = C(:,1);
-            fiberLocY = C(:,2);
-            fiberLocZ = C(:,3);
-            fiberArea = C(:,4);
-            
+            % Read Results
+            switch obj.fiber_discretization_method
+                case 'legacy'
+                    C = dlmread(filename_print,' ',4,0);
+                    fiberMat  = C(:,1);
+                    fiberLocY = C(:,2);
+                    fiberLocZ = C(:,3);
+                    fiberArea = C(:,4);
+                case 'json'
+                    jsondata = jsondecode(fileread(filename_print));
+                    section = jsondata.StructuralAnalysisModel.properties.sections(1);
+                    fiberMat = str2double({section.fibers.material})';
+                    fiberLoc = [section.fibers.coord]';
+                    fiberLocY = fiberLoc(:,1);
+                    fiberLocZ = fiberLoc(:,2);
+                    fiberArea = [section.fibers.area]';
+            end
             % Clean Folder
             if obj.deleteFilesAfterAnalysis
                 delete(filename_input,filename_print);
