@@ -19,7 +19,7 @@ set H  [expr $E*$Eh/($E-$Eh)]
 
 uniaxialMaterial Hardening 1 $E $Fy $H 0.0
 
-section Fiber 1 {
+section Fiber 1 -GJ 1 {
     # Flanges
     set nX $nfx
     set nY [expr int(ceil($nfy*$tf/$d))]
