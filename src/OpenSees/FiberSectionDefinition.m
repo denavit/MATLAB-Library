@@ -443,9 +443,9 @@ if isa(sectionData,'WF')
     end
     eu = sprintf('%g',sectionData.eu);
     if isfield(options,'StiffnessReduction')
-        Es = sprintf('%g',options.StiffnessReduction*sectionData.Es);
+        E = sprintf('%g',options.StiffnessReduction*sectionData.E);
     else
-        Es = sprintf('%g',sectionData.Es);
+        E = sprintf('%g',sectionData.E);
     end
 elseif isstruct(sectionData)
     units = sectionData.units;
@@ -462,9 +462,9 @@ elseif isstruct(sectionData)
     end
     eu = parseFromStruct(sectionData,'eu','%g');
     if isfield(options,'StiffnessReduction')
-        Es = parseFromStruct(sectionData,'Es','%g','reduce',options.StiffnessReduction);
+        E = parseFromStruct(sectionData,'E','%g','reduce',options.StiffnessReduction);
     else
-        Es = parseFromStruct(sectionData,'Es','%g');
+        E = parseFromStruct(sectionData,'E','%g');
     end
 else
     error('Unknown type for sectionData: %s',class(sectionData))
@@ -507,13 +507,13 @@ end
 switch materialType
     case 'Shen'
         definition = sprintf('%s -ShenSteel %i %s %s %s %s %s',...
-            definition,startMatID,Es,Fy,Fu,eu,units);
+            definition,startMatID,E,Fy,Fu,eu,units);
     case 'ShenDegrade'
         definition = sprintf('%s -ShenSteelDegrade %i %s %s %s %s %s',...
-            definition,startMatID,Es,Fy,Fu,eu,units);
+            definition,startMatID,E,Fy,Fu,eu,units);
     case 'ElasticPP'
         definition = sprintf('%s -ElasticPP %i %s %s',...
-            definition,startMatID,Es,Fy);
+            definition,startMatID,E,Fy);
     case 'Steel02'
         if isfield(options,'StrainHardeningRatio')
             b = options.StrainHardeningRatio;
@@ -521,13 +521,13 @@ switch materialType
             b = 0.003;
         end
         definition = sprintf('%s -Steel02 %i %s %s %g',...
-            definition,startMatID,Es,Fy,b);
+            definition,startMatID,E,Fy,b);
     case 'Elastic'
         definition = sprintf('%s -Elastic %i %s',...
-            definition,startMatID,Es);    
+            definition,startMatID,E);    
     case 'ElasticSmallStiffness'
         definition = sprintf('%s -ElasticSmallStiffness %i %s %s',...
-            definition,startMatID,Es,Fy);
+            definition,startMatID,E,Fy);
     otherwise
         error('Unknown material type')
 end
@@ -674,7 +674,7 @@ while i < length(varargin)
     i = i+1;
 end
 
-if isfield(obj,field);
+if isfield(obj,field)
     value = obj.(field);
     if checkForReplace && isequal(value,replaceValue)
         str = replaceWith;
