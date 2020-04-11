@@ -664,6 +664,8 @@ classdef SRC < structural_shape
                     [P,M] = psdSectionInteraction2d(obj,axis,quadrant,type(11:end));
                     ind = find(P<0);
                     P(ind) = P(ind)*obj.stabilityReduction(axis,obj.Pnco);
+                case 'trial'
+                    [P,M] = trial_interaction_diagram(obj,axis,quadrant,type,false);
                 case 'aci'
                     [P,M] = obj.sectionInteraction2d(axis,'ACI',quadrant);
                 case 'factoredaci'

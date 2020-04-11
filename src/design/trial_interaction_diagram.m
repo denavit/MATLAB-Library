@@ -1,5 +1,17 @@
 function [P,M] = trial_interaction_diagram(obj,axis,quadrant,type,factored)
 
+if length(type) >= 7
+    if strcmpi(type(1:6),'trial-')
+        type = type(7:end);
+    end
+end
+if length(type) >= 15
+    if strcmpi(type(1:14),'factoredtrial-')
+        type = type(15:end);
+    end
+end
+
+
 switch lower(type)
     case 'acdb'
 
