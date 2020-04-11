@@ -7,6 +7,20 @@ if strcmpi(points,'psd')
     [points,remain] = strtok(remain,'-');
 end
 
+% Continuous 
+if strcmpi(points,'continuous')
+    psd = obj.plasticStressDistributionObject;
+    switch lower(axis)
+        case {'x','z','major','strong'}
+            [P,M,~] = psd.interactionSweep(0,100);
+        case {'y','minor','weak'}
+            [P,~,M] = psd.interactionSweep(pi/2,100);
+        otherwise
+            error('Bad axis');
+    end
+    return
+end
+
 % Compression Positive
 P_cp = [];
 M_cp = [];
@@ -50,7 +64,7 @@ switch lower(quadrant)
         P = P_cp;
         M = M_cp;
     otherwise
-        error('Unknown quadrant');
+        error('Unknown quadrant: %s',quadrant);
 end
 
 end
