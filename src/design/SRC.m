@@ -613,7 +613,7 @@ classdef SRC < structural_shape
         function [P,M] = sectionInteraction2d(obj,axis,type,quadrant)
             switch lower(strtok(type,'-'))
                 case 'aisc'
-                    [P,M] = obj.sectionInteraction2d(axis,type,'psd-acbt');
+                    [P,M] = obj.sectionInteraction2d(axis,'psd-acbt',quadrant);
                 case 'h1.1'
                     [P,M] = AISC_H1_interaction_diagram(...
                         obj.Pnt,-obj.Pnco,obj.Mno(axis),quadrant);
