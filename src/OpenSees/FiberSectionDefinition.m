@@ -485,18 +485,25 @@ if includeFillet
 end
 
 % Residual Stress
-nResidualStressSectors = ...
-    parseFromStruct(sectionData,'nResidualStressSectors','%i',...
-    'default','10');
-if isfield(options,'residualStressRatio')
-    residualStressRatio = options.residualStressRatio;
+if isfield(options,'include_residual_stress')
+    include_residual_stress = options.include_residual_stress;
 else
-    residualStressRatio = 0.3;
+    include_residual_stress = true;
 end
-frc = parseFromStruct(sectionData,'frc','%g',...
-    'default',sprintf('%g',-residualStressRatio*sscanf(Fy,'%g')));
-definition = sprintf('%s -Lehigh %s %s',...
-    definition,frc,nResidualStressSectors);
+if include_residual_stress
+    nResidualStressSectors = ...
+        parseFromStruct(sectionData,'nResidualStressSectors','%i',...
+        'default','10');
+    if isfield(options,'residualStressRatio')
+        residualStressRatio = options.residualStressRatio;
+    else
+        residualStressRatio = 0.3;
+    end
+    frc = parseFromStruct(sectionData,'frc','%g',...
+        'default',sprintf('%g',-residualStressRatio*sscanf(Fy,'%g')));
+    definition = sprintf('%s -Lehigh %s %s',...
+        definition,frc,nResidualStressSectors);
+end
 
 % Material Models
 if isfield(options,'SteelMaterialType')
@@ -536,7 +543,11 @@ end
 definition = parseAddedElasticStiffness(definition,bendingType,options);
 
 % Number of materials
-numMat = nResidualStressSectors;
+if include_residual_stress
+    numMat = nResidualStressSectors;
+else
+    numMat = 1;
+end
 
 end
 
