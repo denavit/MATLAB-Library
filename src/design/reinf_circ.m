@@ -8,12 +8,15 @@ classdef reinf_circ < reinf
     end
     
     methods
-        function obj = reinf_circ(xc,yc,rc,nb,Ab)
+        function obj = reinf_circ(xc,yc,rc,nb,Ab,db)
             obj.xc = xc;
             obj.yc = yc;
             obj.rc = rc;
             obj.nb = nb;
             obj.Ab = Ab;
+            if nargin > 5
+                obj.db = db;
+            end
         end
         function [x,y] = coordinates(obj)
             angles = linspace(0,2*pi,obj.nb+1);

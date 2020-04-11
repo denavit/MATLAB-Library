@@ -10,7 +10,7 @@ classdef reinf_rect < reinf
     end
     
     methods
-        function obj = reinf_rect(Bx,By,xc,yc,nbx,nby,Ab)
+        function obj = reinf_rect(Bx,By,xc,yc,nbx,nby,Ab,db)
             obj.Bx  = Bx;
             obj.By  = By;
             obj.xc  = xc;
@@ -18,6 +18,9 @@ classdef reinf_rect < reinf
             obj.nbx = nbx;
             obj.nby = nby;
             obj.Ab  = Ab;
+            if nargin > 7
+                obj.db = db;
+            end
         end
         function [x,y] = coordinates(obj)
             x1 = linspace(-0.5*obj.Bx+obj.xc, 0.5*obj.Bx+obj.xc,obj.nbx);
