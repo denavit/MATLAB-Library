@@ -73,7 +73,7 @@ classdef RC < structural_shape
             po = 0.85*obj.fc*(obj.Ag-obj.Asr)+obj.fy*obj.Asr;
         end
         function pnco = Pnco(obj)
-            error('Not yet implemented')
+            pnco = 0.85*(obj.Asr*obj.fy + 0.85*obj.Ac*obj.fc);
         end
         function pnc = Pnc(obj,axis)
             error('Not yet implemented')
