@@ -463,7 +463,7 @@ classdef fiberSection < handle
         function buildFiberData(obj)
            
             % Find outer boundries of section
-            [zMin,zMax,yMin,yMax] = obj.bounds;
+            [zMin,zMax,yMin,yMax] = obj.bounds('AsDefined');
             sfz = (zMax-zMin)/obj.nfz;
             sfy = (yMax-yMin)/obj.nfy;
             
