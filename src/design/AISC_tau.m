@@ -39,7 +39,7 @@ switch lower(tauType)
     case 'composite'
         tau = 0.8;
     otherwise
-        error('Unknown tauType')
+        error('Unknown tauType: %s',tauType)
 end
 
 end
