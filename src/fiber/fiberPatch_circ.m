@@ -83,8 +83,8 @@ classdef fiberPatch_circ < fiberPatch
             end
 
             % Get full circle
-            A = vertcat(A, flipud(A));
-            y = vertcat(y, flipud(y));
+            A = vertcat(A,  flipud(A));
+            y = vertcat(y, -flipud(y));
             
             % Adjust based on center of circle
             y = y + obj.yc;
