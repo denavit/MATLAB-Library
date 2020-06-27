@@ -73,7 +73,15 @@ classdef RC < structural_shape
             po = 0.85*obj.fc*(obj.Ag-obj.Asr)+obj.fy*obj.Asr;
         end
         function pnco = Pnco(obj)
-            pnco = 0.85*(obj.Asr*obj.fy + 0.85*obj.Ac*obj.fc);
+            % See Section 22.4.2 of ACI318-19
+            switch lower(obj.transverse_reinf_type)
+                case 'ties'
+                    pnco = 0.80*obj.Po;
+                case {'spiral','spirals'}
+                    pnco = 0.85*obj.Po;
+                otherwise
+                    error('Unknown transverse_reinf_type: %s',obj.transverse_reinf_type);
+            end
         end
         function pnc = Pnc(obj,axis)
             error('Not yet implemented')
