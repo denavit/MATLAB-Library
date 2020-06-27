@@ -600,7 +600,7 @@ classdef SectionAnalysis < OpenSeesAnalysis
             for i = 1:length(obj.section_def)
                 fprintf(myFile, '%s\n',obj.section_def{i});
             end
-            fprintf(myFile, 'element zeroLengthSection 1 1 2 1 \n');
+            fprintf(myFile, 'element zeroLengthSection 1 1 2 %i \n',obj.section_tag);
             
             % Loading
             for i = 1:ndf
