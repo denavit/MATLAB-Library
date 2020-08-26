@@ -133,13 +133,35 @@ classdef RC < structural_shape
             end
         end
         function [E,A,I] = sectionPropertiesForElasticAnalysis2d(obj,axis,type)
-            error('Not yet implemented')
+            switch lower(type)
+                case 'gross'
+                    E = obj.Ec;
+                    I = (obj.Es*obj.Isr(axis) + obj.Ec*obj.Ic(axis))/E;
+                    A = (obj.Es*obj.Asr + obj.Ec*obj.Ac)/E;
+                otherwise
+                    error('Unknown type: %s',type);
+            end
         end
         function [E,A,Iz,Iy,G,J] = sectionPropertiesForElasticAnalysis3d(obj,type)
             error('Not yet implemented')
         end
         function strain = longitudinalStrain2d(obj,axis,axialStrain,curvature,type)
-            error('Not yet implemented')
+            assert(isequal(size(axialStrain),size(curvature)),...
+                'axialStrain and curvature should be the same size');
+            yExtreme = obj.depth(axis)/2;
+            switch lower(type)
+                case {'maxcompressive','maxconcretecompressive'}
+                    strain = min(axialStrain+yExtreme*curvature,...
+                        axialStrain-yExtreme*curvature);
+                case {'maxtensile','maxconcretetensile'}
+                    strain = max(axialStrain+yExtreme*curvature,...
+                        axialStrain-yExtreme*curvature);
+                case 'maxabsolute'
+                    strain = max(abs(axialStrain+yExtreme*curvature),...
+                        abs(axialStrain-yExtreme*curvature));
+                otherwise
+                    error('Unknown type');
+            end
         end
         function x = getSectionData(obj,type,axis)
             error('Not yet implemented')
