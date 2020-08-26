@@ -20,11 +20,11 @@ if isnumeric(sectionID)
 end
 
 if any(strcmpi(bendingType,{'strong','x','z'}))
-    bendingType = '2dStrong';
+    bendingType = '2dx';
 end
 
 if any(strcmpi(bendingType,{'weak','y'}))
-    bendingType = '2dWeak';
+    bendingType = '2dy';
 end
 
 % Create the section definition
@@ -582,7 +582,7 @@ switch lower(bendingType)
             'fourFiberSectionGJ %s %i %s %s %s %s',...
             sectionID,startMatID,A,Iy,Iz,GJ);
         
-    case '2dstrong'
+    case '2dx'
         if isa(sectionData,'general_elastic_section')
             E  = sprintf('%g',sectionData.E);
             A  = sprintf('%g',sectionData.A);
@@ -602,7 +602,7 @@ switch lower(bendingType)
             'twoFiberSection %s %i %s %s',...
             sectionID,startMatID,A,I);
         
-    case '2dweak'
+    case '2dy'
         if isa(sectionData,'general_elastic_section')
             E  = sprintf('%g',sectionData.E);
             A  = sprintf('%g',sectionData.A);
@@ -811,10 +811,10 @@ else
 end
 % nf2
 switch lower(bendingType)
-    case '2dstrong'
-        nf2 = 'strong';
-    case '2dweak'
-        nf2 = 'weak';
+    case '2dx'
+        nf2 = 'x';
+    case '2dy'
+        nf2 = 'y';
     case '3d'
         if isfield(options,'nf2')
             nf2 = sprintf('%i',options.nf2);
@@ -839,7 +839,7 @@ end
 
 if includeAddedElasticStiffness
     switch lower(bendingType)
-        case {'2dstrong','2dweak'}
+        case {'2dx','2dy'}
             EA = parseFromStruct(options,'addedElasticStiffness_EA','%g');
             EI = parseFromStruct(options,'addedElasticStiffness_EI','%g');
             definition = sprintf('%s -AddedElastic %s %s',...
