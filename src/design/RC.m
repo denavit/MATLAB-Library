@@ -69,6 +69,9 @@ classdef RC < structural_shape
                 i = i + obj.reinforcement{j}.I(axis);
             end
         end
+        function r = rg(obj,axis)
+            r = obj.conc_cross_section.r(axis);
+        end
         function po = Po(obj)
             po = 0.85*obj.fc*(obj.Ag-obj.Asr)+obj.fy*obj.Asr;
         end
@@ -84,7 +87,7 @@ classdef RC < structural_shape
             end
         end
         function pnc = Pnc(obj,axis)
-            error('Not yet implemented')
+            pnc = Pnco(obj);
         end
         function pnt = Pnt(obj)
             error('Not yet implemented')
@@ -138,6 +141,10 @@ classdef RC < structural_shape
                     E = obj.Ec;
                     I = (obj.Es*obj.Isr(axis) + obj.Ec*obj.Ic(axis))/E;
                     A = (obj.Es*obj.Asr + obj.Ec*obj.Ac)/E;
+                case '0.7ecig'
+                    E = obj.Ec;
+                    I = 0.7*obj.Ig(axis);
+                    A = obj.Ag;
                 otherwise
                     error('Unknown type: %s',type);
             end
@@ -164,7 +171,14 @@ classdef RC < structural_shape
             end
         end
         function x = getSectionData(obj,type,axis)
-            error('Not yet implemented')
+            switch lower(type)
+                case 'reinforcingratio'
+                    x = obj.Asr/obj.Ag;
+                case 'concretestrength'
+                    x = obj.fc;
+                otherwise
+                    x = NaN;
+            end
         end
         function ratio = interactionCheck(obj,xi,P,Ms,Mw,Vs,Vw,T)
             error('Not yet implemented')
