@@ -1,4 +1,35 @@
 function numbers = fillOutNumbers(peaks,rate)
+% fillOutNumbers  Evenly space numbers between peaks.
+%
+% numbers = fillOutNumbers(peaks, rate)
+%
+% Examples
+% --------
+% 
+% >> fillOutNumbers([0, 1, -1], 0.25)
+% ans =
+%          0    % Peak 1
+%     0.2500
+%     0.5000
+%     0.7500
+%     1.0000    % Peak 2
+%     0.7500
+%     0.5000
+%     0.2500
+%          0
+%    -0.2500
+%    -0.5000
+%    -0.7500
+%    -1.0000    % Peak 3
+%
+% >> fillOutNumbers([0, 1, -1; 1, 2, -2], 0.25)
+% ans =
+%          0    1.0000   -1.0000
+%     0.2500    1.2500   -1.2500
+%     0.5000    1.5000   -1.5000
+%     0.7500    1.7500   -1.7500
+%     1.0000    2.0000   -2.0000
+%
 
 % if peaks is a row vector, make it a column vector
 if ( size(peaks,1) == 1 )
