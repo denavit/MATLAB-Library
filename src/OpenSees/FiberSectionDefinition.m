@@ -325,9 +325,9 @@ if isa(sectionData,'RectangularHSS')
         end
     end
     if isfield(options,'StiffnessReduction')
-        Es = sprintf('%g',options.StiffnessReduction*sectionData.Es);
+        E = sprintf('%g',options.StiffnessReduction*sectionData.E);
     else
-        Es = sprintf('%g',sectionData.Es);
+        E = sprintf('%g',sectionData.E);
     end    
 elseif isstruct(sectionData)
     units = sectionData.units;
@@ -342,9 +342,9 @@ elseif isstruct(sectionData)
         Fu = parseFromStruct(sectionData,'Fu','%g','replace',-1,'calc');
     end
     if isfield(options,'StiffnessReduction')
-        Es = parseFromStruct(sectionData,'Es','%g','reduce',options.StiffnessReduction,'replace',-1,'calc');
+        E = parseFromStruct(sectionData,'E','%g','reduce',options.StiffnessReduction,'replace',-1,'calc');
     else
-        Es = parseFromStruct(sectionData,'Es','%g','replace',-1,'calc');
+        E = parseFromStruct(sectionData,'E','%g','replace',-1,'calc');
     end
 else
     error('Unknown type for sectionData: %s',class(sectionData))
@@ -352,7 +352,7 @@ end
 
 definition = sprintf(...
     'recthssSection %s %i %s %s %s %s %s %s %s %s %s',...
-    sectionID,startMatID,nf1,nf2,units,H,B,t,Fy,Fu,Es);
+    sectionID,startMatID,nf1,nf2,units,H,B,t,Fy,Fu,E);
 
 definition = parseSteelMaterialType(definition,options);
 
@@ -388,9 +388,9 @@ if isa(sectionData,'RoundHSS')
         end
     end
     if isfield(options,'StiffnessReduction')
-        Es = sprintf('%g',options.StiffnessReduction*sectionData.Es);
+        E = sprintf('%g',options.StiffnessReduction*sectionData.E);
     else
-        Es = sprintf('%g',sectionData.Es);
+        E = sprintf('%g',sectionData.E);
     end 
 elseif isstruct(sectionData)
     units = sectionData.units;
@@ -404,9 +404,9 @@ elseif isstruct(sectionData)
         Fu = parseFromStruct(sectionData,'Fu','%g','replace',-1,'calc');
     end
     if isfield(options,'StiffnessReduction')
-        Es = parseFromStruct(sectionData,'Es','%g','reduce',options.StiffnessReduction,'replace',-1,'calc');
+        E = parseFromStruct(sectionData,'E','%g','reduce',options.StiffnessReduction,'replace',-1,'calc');
     else
-        Es = parseFromStruct(sectionData,'Es','%g','replace',-1,'calc');
+        E = parseFromStruct(sectionData,'E','%g','replace',-1,'calc');
     end
 else
     error('Unknown type for sectionData: %s',class(sectionData))
@@ -414,7 +414,7 @@ end
 
 definition = sprintf(...
     'roundhssSection %s %i %s %s %s %s %s %s %s %s',...
-    sectionID,startMatID,nf1,nf2,units,D,t,Fy,Fu,Es);
+    sectionID,startMatID,nf1,nf2,units,D,t,Fy,Fu,E);
 
 definition = parseSteelMaterialType(definition,options);
 
