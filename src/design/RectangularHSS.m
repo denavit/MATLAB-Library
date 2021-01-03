@@ -141,7 +141,7 @@ classdef RectangularHSS < structural_shape
         function pn = Pnc(obj,axis)
             % Compressive Strength 
             if strcmpi(axis,'min')
-                pn = min([obj.Pnc('strong') obj.Pnc('weak')]);
+                pn = min([obj.Pnc('x') obj.Pnc('y')]);
                 return
             end
             r = sqrt(obj.I(axis)/obj.A);

@@ -41,9 +41,9 @@ classdef Rectangular_Tube_Shape < geometric_shape
         function s = S(obj,axis)
             I = obj.I(axis);
             switch lower(axis)
-                case {'major','strong'}
+                case {'x','z','major','strong'}
                     s = I/(obj.H/2);
-                case {'minor','weak'}
+                case {'y','minor','weak'}
                     s = I/(obj.B/2);
                 otherwise
                     error('Bad axis');

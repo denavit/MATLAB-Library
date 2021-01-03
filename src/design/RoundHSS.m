@@ -99,14 +99,14 @@ classdef RoundHSS < structural_shape
         function pn = Pnc(obj,axis)
             % Compressive Strength 
             if strcmpi(axis,'min')
-                pn = min([obj.Pnc('strong') obj.Pnc('weak')]);
+                pn = min([obj.Pnc('x') obj.Pnc('y')]);
                 return;
             elseif strcmpi(axis,'max')
-                pn = max([obj.Pnc('strong') obj.Pnc('weak')]);
+                pn = max([obj.Pnc('x') obj.Pnc('y')]);
                 return;
             end
             r = sqrt(obj.I(axis)/obj.A);
-            Fe = pi^2*obj.E/(obj.K(axis)*obj.L/r)^2;
+            Fe = pi^2*obj.E/(obj.K(axis)*obj.L(axis)/r)^2;
             Pnco = obj.Pnco;
             pn = Pnco*AISC_column_curve((Pnco/obj.A)/Fe);          
         end
@@ -158,14 +158,14 @@ classdef RoundHSS < structural_shape
         end
         function pnc = Pnc_expected(obj,axis)
             if strcmpi(axis,'min')
-                pnc = min([obj.Pnc_expected('strong') obj.Pnc_expected('weak')]);
+                pnc = min([obj.Pnc_expected('x') obj.Pnc_expected('y')]);
                 return
             end
             tubeSlenderness = obj.D/obj.t;
             assert(tubeSlenderness < 0.11*obj.E/obj.Fy,...
                 'Pnc_expected not yet implemented for tubes with slender elements');
             r = sqrt(obj.I(axis)/obj.A);
-            Fe = pi^2*obj.E/(obj.K(axis)*obj.L/r)^2;
+            Fe = pi^2*obj.E/(obj.K(axis)*obj.L(axis)/r)^2;
             Fcre = obj.Ry*obj.Fy*AISC_column_curve(obj.Ry*obj.Fy/Fe);
             pnc = min([obj.Ry*obj.Fy*obj.A 1.14*Fcre*obj.A]);
         end
@@ -180,8 +180,8 @@ classdef RoundHSS < structural_shape
             phi_V  = 0.90;
             
             % Moment Strengths
-            Mcs = phi_M*obj.Mn('strong');
-            Mcw = phi_M*obj.Mn('weak');
+            Mcs = phi_M*obj.Mn('x');
+            Mcw = phi_M*obj.Mn('y');
             
             % Compressive Load / Moment Interaction
             Pc = phi_Pc*obj.Pnc('min');
@@ -191,18 +191,18 @@ classdef RoundHSS < structural_shape
             Pc = phi_Pt*obj.Pnt;
             ratio_PMt = aisc2010.interactionCheck_H12(P,Ms,Mw,Pc,Mcs,Mcw);
             
-            % Check strong axis shear
+            % Check x-axis shear
             if isempty(Vs)
                 ratio_Vs = 0;
             else
-                ratio_Vs = max(abs(Vs))/(phi_V*obj.Vn('strong'));
+                ratio_Vs = max(abs(Vs))/(phi_V*obj.Vn('x'));
             end
            
-            % Check weak axis shear
+            % Check y-axis shear
             if isempty(Vw)
                 ratio_Vw = 0;
             else
-                ratio_Vw = max(abs(Vw))/(phi_V*obj.Vn('weak'));
+                ratio_Vw = max(abs(Vw))/(phi_V*obj.Vn('y'));
             end            
            
             % No check on torsion
@@ -220,9 +220,9 @@ classdef RoundHSS < structural_shape
                     pass_tf = obj.D/obj.t < 0.044*obj.E/obj.Fy;
                 case 'slendernessratio_klr'
                     limit = varargin{1};
-                    KLr_strong = obj.Kstrong*obj.L/sqrt(obj.I('strong')/obj.A);
-                    KLr_weak = obj.Kweak*obj.L/sqrt(obj.I('weak')/obj.A);
-                    pass_tf = max([KLr_strong KLr_weak]) < limit;
+                    KLrx = obj.Kx*obj.Lx/sqrt(obj.I('x')/obj.A);
+                    KLry = obj.Ky*obj.Ly/sqrt(obj.I('y')/obj.A);
+                    pass_tf = max([KLrx KLry]) < limit;
                 otherwise
                     error('Unknown checkType');
             end
@@ -269,8 +269,8 @@ classdef RoundHSS < structural_shape
                 case {'gross','columnstrength'}
                     E  = obj.E;
                     A  = obj.A;
-                    Iz = obj.I('strong');
-                    Iy = obj.I('weak');
+                    Iz = obj.I('x');
+                    Iy = obj.I('y');
                     G  = obj.G;
                     J  = obj.J;
                 otherwise
@@ -281,9 +281,7 @@ classdef RoundHSS < structural_shape
             assert(isequal(size(axialStrain),size(curvature)),...
                 'axialStrain and curvature should be the same size');
             switch lower(axis)
-                case 'strong'
-                    yExtreme = obj.D/2;
-                case 'weak'
+                case {'x','z','y'}
                     yExtreme = obj.D/2;
                 otherwise
                     error('Bad axis'); 
