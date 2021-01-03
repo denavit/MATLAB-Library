@@ -328,9 +328,16 @@ classdef RectangularHSS < structural_shape
             switch lower(type)
                 case {'aisc','h1.1'}
                     [P,M] = AISC_H1_interaction_diagram(...
+                        obj.Pnt,-obj.Pnc('min'),obj.Mn(axis),quadrant);
+                case {'aisc/in_plane','h1.1/in_plane'}
+                    [P,M] = AISC_H1_interaction_diagram(...
                         obj.Pnt,-obj.Pnc(axis),obj.Mn(axis),quadrant);
                 case 'factoredaisc'
                     [P,M] = obj.beamColumnInteraction2d(axis,'AISC',quadrant);
+                    P = 0.9*P;
+                    M = 0.9*M;
+                case 'factoredaisc/in_plane'
+                    [P,M] = obj.beamColumnInteraction2d(axis,'AISC/in_plane',quadrant);
                     P = 0.9*P;
                     M = 0.9*M;
                 otherwise
