@@ -287,6 +287,7 @@ classdef RCFT < structural_shape
             end
 
             % @todo - use web values if they control
+            % @todo - maybe this function should only return slenderness
             lambda  = lambda_flg;
             lambdaP = lambdaP_flg;
             lambdaR = lambdaR_flg;
@@ -390,8 +391,7 @@ classdef RCFT < structural_shape
                     otherwise
                         error('Bad axis');
                 end
-                [slenderness,lambda,lambdaP,lambdaR] = ...
-                    obj.slendernessInFlexure(axis);
+                slenderness = obj.slendernessInFlexure(axis);
                 switch slenderness
                     case 'compact'
                         [~,Mp] = obj.pointB(axis); % Plastic Moment (Point B)
@@ -407,9 +407,23 @@ classdef RCFT < structural_shape
                             -(ay*2*obj.t*0.5*obj.Fy)*((d-ay-(2/3)*ay)-(d/2)) + ...
                             -((d-2*ay)*2*obj.t*obj.Fy)*(((d-2*ay)/2)-(d/2)) + ...
                             -(bi*obj.t*obj.Fy)*((0.5*obj.t)-(d/2));
-                        mn = Mp - (Mp-My)*(lambda-lambdaP)/(lambdaR-lambdaP);
-                        % @todo - which lambda web or flange
+                        
+                        lambda_flg  = obj.lambda(axis,'flange');
+                        lambdaP_flg = 2.26*sqrt(obj.Es/obj.Fy);
+                        lambdaR_flg = 3.00*sqrt(obj.Es/obj.Fy);
+                        lambda_web  = obj.lambda(axis,'web');
+                        lambdaP_web = 3.00*sqrt(obj.Es/obj.Fy);
+                        lambdaR_web = 5.70*sqrt(obj.Es/obj.Fy);
+                        
+                        % Use lambdas from web or flange, whichever is
+                        % worse (i.e., results in lower strength)
+                        x_flg = (lambda_flg-lambdaP_flg)/(lambdaR_flg-lambdaP_flg);
+                        x_web = (lambda_web-lambdaP_web)/(lambdaR_web-lambdaP_web);
+                        mn = Mp - (Mp-My)*max([x_flg x_web]);
                     case 'slender'
+                        lambda_flg = obj.lambda(axis,'flange');
+                        lambda_web = obj.lambda(axis,'web');
+                        lambda = max([lambda_flg lambda_web]);
                         Fcr = 9*obj.Es/lambda^2;
                         bi = b-2*obj.t;
                         acr = (obj.Fy*d*obj.t + (0.35*obj.fc+obj.Fy-Fcr)*bi*obj.t)/...
