@@ -913,6 +913,21 @@ classdef RCFT < structural_shape
             psd = plastic_stress_distribution(fs);       
             psd.addMaterial(idSteel,obj.Fy,-obj.Fy);
             psd.addMaterial(idConc,0.0,-obj.C2*obj.fc);
+            %psd.addMaterial(idConc,0.0,-obj.fc);
+        end
+        function psd = plasticStressDistributionObject_HS(obj)
+            idSteel = 1;
+            idConc  = 2;
+            fs = obj.fiberSectionObject(idSteel,idConc);
+            psd = plastic_stress_distribution(fs);  
+            
+            lambda = sqrt(obj.Fy/obj.Es)*max([...
+                obj.lambda('x','web') ...
+                obj.lambda('x','flange')]);
+            Fn = (1.0 - 0.075*lambda)*obj.Fy;
+            psd.addMaterial(idSteel,obj.Fy,-Fn);
+            psd.addMaterial(idConc,0.0,-obj.C2*obj.fc);
+            %psd.addMaterial(idConc,0.0,-obj.fc);
         end  
         function ess = elasticSectionStiffnessObject(obj)
             idSteel = 1;
