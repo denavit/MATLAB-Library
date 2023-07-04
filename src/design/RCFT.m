@@ -629,10 +629,21 @@ classdef RCFT < structural_shape
                         [P,M] = obj.beamColumnInteraction2d(axis,'psdsimple-acbt',quadrant);
                     else
                         [P,M] = AISC_H1_interaction_diagram(...
+                            obj.Pnt,-obj.Pnc('min'),obj.Mn(axis),quadrant);
+                    end
+                case 'aisc/in_plane'
+                    if obj.isCompact || obj.neglectLocalBuckling
+                        [P,M] = obj.beamColumnInteraction2d(axis,'psdsimple/in_plane-acbt',quadrant);
+                    else
+                        [P,M] = AISC_H1_interaction_diagram(...
                             obj.Pnt,-obj.Pnc(axis),obj.Mn(axis),quadrant);
                     end
                 case 'factoredaisc'
                     [P,M] = obj.beamColumnInteraction2d(axis,'AISC',quadrant);
+                    P = 0.75*P;
+                    M =  0.9*M;
+                case 'factoredaisc/in_plane'
+                    [P,M] = obj.beamColumnInteraction2d(axis,'AISC/in_plane',quadrant);
                     P = 0.75*P;
                     M =  0.9*M;
                 case 'h1.1'
@@ -644,9 +655,11 @@ classdef RCFT < structural_shape
                 case 'psdsimple'
                     [P,M] = psdSectionInteraction2d(obj,axis,quadrant,type(11:end));
                     ind = find(P<0);
+                    P(ind) = P(ind)*obj.stabilityReduction('min',obj.Pnco);
+                case 'psdsimple/in_plane'
+                    [P,M] = psdSectionInteraction2d(obj,axis,quadrant,type(20:end));
+                    ind = find(P<0);
                     P(ind) = P(ind)*obj.stabilityReduction(axis,obj.Pnco);
-                case 'trial'
-                    [P,M] = trial_interaction_diagram(obj,axis,quadrant,type,false);
                 case 'aci'
                     [P,M] = obj.sectionInteraction2d(axis,'ACI',quadrant);
                 case 'factoredaci'

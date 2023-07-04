@@ -650,10 +650,16 @@ classdef SRC < structural_shape
             switch lower(strtok(type,'-'))
                 case 'aisc'
                     [P,M] = obj.beamColumnInteraction2d(axis,'psdsimple-acbt',quadrant);
+                case 'aisc/in_plane'
+                    [P,M] = obj.beamColumnInteraction2d(axis,'psdsimple/in_plane-acbt',quadrant);
                 case 'factoredaisc'
                     [P,M] = obj.beamColumnInteraction2d(axis,'AISC',quadrant);
                     P = 0.75*P;
-                    M =  0.9*M;                    
+                    M =  0.9*M;
+                case 'factoredaisc/in_plate'
+                    [P,M] = obj.beamColumnInteraction2d(axis,'AISC/in_plane',quadrant);
+                    P = 0.75*P;
+                    M =  0.9*M;
                 case 'h1.1'
                     [P,M] = AISC_H1_interaction_diagram(...
                         obj.Pnt,-obj.Pnc(axis),obj.Mn(axis),quadrant);
@@ -662,6 +668,10 @@ classdef SRC < structural_shape
                         0.9*obj.Pnt,-0.75*obj.Pnc(axis),0.9*obj.Mn(axis),quadrant);
                 case 'psdsimple'
                     [P,M] = psdSectionInteraction2d(obj,axis,quadrant,type(11:end));
+                    ind = find(P<0);
+                    P(ind) = P(ind)*obj.stabilityReduction('min',obj.Pnco);
+                case 'psdsimple/in_plane'
+                    [P,M] = psdSectionInteraction2d(obj,axis,quadrant,type(20:end));
                     ind = find(P<0);
                     P(ind) = P(ind)*obj.stabilityReduction(axis,obj.Pnco);
                 case 'trial'
