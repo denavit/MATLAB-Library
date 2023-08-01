@@ -222,6 +222,24 @@ classdef RCFT < structural_shape
 
 
         %% Section Slenderness
+        function b = B_flat(obj)
+            if obj.ri == 0
+                b = obj.B-2*obj.t;
+            elseif obj.useDefinedInsideCornerRadiusForSlenderness
+                b = obj.B-2*(obj.t+obj.ri);
+            else
+                b = obj.B-3*obj.t;
+            end
+        end
+        function h = H_flat(obj)
+            if obj.ri == 0
+                h = obj.H-2*obj.t;
+            elseif obj.useDefinedInsideCornerRadiusForSlenderness
+                h = obj.H-2*(obj.t+obj.ri);
+            else
+                h = obj.H-3*obj.t;
+            end
+        end
         function lambda = lambda(obj,axis,component)
             [d,b] = obj.depth(axis);
             if strcmpi(component,'flange')
