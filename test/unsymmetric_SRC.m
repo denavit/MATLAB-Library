@@ -113,7 +113,7 @@ for i = 1:num_bars
 end
 
 if inlcude_compression_cap
-    scACI.maxCompressiveStrength = -0.85*(As*Fy + Asr*Fylr + 0.85*Ac*fc);
+    scACI.maxCompressiveStrength = -0.80*(As*Fy + Asr*Fylr + 0.85*Ac*fc);
 end
 
 scACI.addMaterial(   'steel',id_steel,Fy,Es);
