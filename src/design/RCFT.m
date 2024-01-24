@@ -44,6 +44,7 @@ classdef RCFT < structural_shape
         C2 = 0.85;
         neglectLocalBuckling = false;
         useDefinedInsideCornerRadiusForSlenderness = false;
+        reduce_moment_strength_for_Appendix2 = true;
         option_EI = 'AISC2016';
     end
 
@@ -693,11 +694,25 @@ classdef RCFT < structural_shape
                         'Unknown quadrant');
                     [cp,cm] = obj.I51Parameters;
                     P = -[1 cp 0]'*0.75*obj.Pnc(axis);
-                    M =  [0 cm 1]'*0.9*obj.Mn(axis);                        
+                    M =  [0 cm 1]'*0.9*obj.Mn(axis);
+                case {'appendix2'}
+                    assert(any(strcmpi(quadrant,{'cp','comppos','compressionpositive'})),...
+                    'Unknown quadrant');
+                    [cp,cm] = obj.Appendix2_Interaction_Parameters(axis);
+                    P = -[1 cp 0]'*obj.Pn_Appendix2(axis);
+                    M =  [0 cm 1]'*obj.Mn_Appendix2(axis);
+                case {'factoredappendix2'}
+                    assert(any(strcmpi(quadrant,{'cp','comppos','compressionpositive'})),...
+                        'Unknown quadrant');
+                    [cp,cm] = obj.Appendix2_Interaction_Parameters(axis);
+                    P = -[1 cp 0]'*0.75*obj.Pn_Appendix2(axis);
+                    M =  [0 cm 1]'*0.9*obj.Mn_Appendix2(axis);
                 case 'trial'
                     [P,M] = trial_interaction_diagram(obj,axis,quadrant,type(7:end),false);
                 case 'factoredtrial'
                     [P,M] = trial_interaction_diagram(obj,axis,quadrant,type(15:end),true);
+                case {'appendix2-acdb'}
+                    [P,M] = obj.Appendix2_ACDB_Interaction(axis);
                 otherwise
                     error('Unknown type: %s',type);
             end
@@ -944,22 +959,7 @@ classdef RCFT < structural_shape
             psd = plastic_stress_distribution(fs);       
             psd.addMaterial(idSteel,obj.Fy,-obj.Fy);
             psd.addMaterial(idConc,0.0,-obj.C2*obj.fc);
-            %psd.addMaterial(idConc,0.0,-obj.fc);
         end
-        function psd = plasticStressDistributionObject_HS(obj)
-            idSteel = 1;
-            idConc  = 2;
-            fs = obj.fiberSectionObject(idSteel,idConc);
-            psd = plastic_stress_distribution(fs);  
-            
-            lambda = sqrt(obj.Fy/obj.Es)*max([...
-                obj.lambda('x','web') ...
-                obj.lambda('x','flange')]);
-            Fn = (1.0 - 0.075*lambda)*obj.Fy;
-            psd.addMaterial(idSteel,obj.Fy,-Fn);
-            psd.addMaterial(idConc,0.0,-obj.C2*obj.fc);
-            %psd.addMaterial(idConc,0.0,-obj.fc);
-        end  
         function ess = elasticSectionStiffnessObject(obj)
             idSteel = 1;
             idConc  = 2;
@@ -1032,6 +1032,97 @@ classdef RCFT < structural_shape
             plot(xo,yo,'k-','LineWidth',lineWidth);
             plot(xi,yi,'k-','LineWidth',lineWidth);
             axis equal
+        end
+        
+        %% Appendix 2
+        function Fn = Fn_Appendix2(obj)
+            lambda = sqrt(obj.Fy/obj.Es)*max([...
+                obj.lambda('x','web') ...
+                obj.lambda('x','flange')]);
+            Fn = (1.0 - 0.075*lambda)*obj.Fy;
+        end
+        function psd = plasticStressDistributionObject_Appendix2(obj)
+            idSteel = 1;
+            idConc  = 2;
+            fs = obj.fiberSectionObject(idSteel,idConc);
+            psd = plastic_stress_distribution(fs);  
+            psd.addMaterial(idSteel,obj.Fy,-obj.Fn_Appendix2);
+            psd.addMaterial(idConc,0.0,-obj.C2*obj.fc);
+        end
+        function pn = Pn_Appendix2(obj,axis)
+            Pno = obj.Fn_Appendix2*obj.As + 0.85*obj.fc*obj.Ac;
+            pn = Pno*obj.stabilityReduction(axis,Pno);
+        end
+        function mn = Mn_Appendix2(obj,axis)
+            psd = obj.plasticStressDistributionObject_Appendix2();
+            num_points = 50;
+            switch lower(axis)
+                case {'x','strong'}
+                    [P,M,~] = psd.interactionSweep(0,num_points);
+                case {'y','weak'}
+                    [P,~,M] = psd.interactionSweep(pi/2,num_points);
+                otherwise
+                    error('Bad axis: %s',axis);
+            end
+            id = interactionDiagram2d(M,-P);
+            Mmax = 1.1*max(M);
+            [mn,~] = id.findIntersection(linspace(0,Mmax,100),linspace(0,0,100));
+            if obj.reduce_moment_strength_for_Appendix2
+                mn = 0.9*mn;
+            end
+        end
+        function [cp,cm] = Appendix2_Interaction_Parameters(obj,axis)
+            lambda = sqrt(obj.Fy/obj.Es)*max([...
+                obj.lambda('x','web') ...
+                obj.lambda('x','flange')]);
+            
+            Pno = obj.Fn_Appendix2*obj.As + 0.85*obj.fc*obj.Ac;
+            Pn_over_Pno = obj.stabilityReduction(axis,Pno);
+
+            switch obj.units
+                case 'US'
+                    Fymax = 100;
+                case 'SI'
+                    Fymax = 690;
+                otherwise
+                    error('Fymax not defined for units: %s',obj.units)
+            end
+            
+            cp = 0.175 - 0.075/(obj.B/obj.H) + lambda*(0.3/Pn_over_Pno)*(obj.fc/obj.Fy);
+            cm = 0.6 + 0.3*Pn_over_Pno^2 + 0.6*lambda*(Fymax/obj.Fy)*(obj.fc/obj.Fy);
+        end
+        function [P,M] = Appendix2_ACDB_Interaction(obj,axis)
+            % Point A
+            PA = obj.Fn_Appendix2*obj.As + 0.85*obj.fc*obj.Ac;
+            Pn_over_Pno = obj.stabilityReduction(axis,Pn_over_Pno);
+            
+            % Cross-Sectional Interaction Diagram
+            psd = obj.plasticStressDistributionObject_Appendix2();
+            num_points = 50;
+            switch lower(axis)
+                case {'x','strong'}
+                    [P,M,~] = psd.interactionSweep(0,num_points);
+                case {'y','weak'}
+                    [P,~,M] = psd.interactionSweep(pi/2,num_points);
+                otherwise
+                    error('Bad axis: %s',axis);
+            end
+            id = interactionDiagram2d(M,-P);
+
+            % Point B
+            Mmax = 1.1*max(M);
+            [MB,~] = id.findIntersection(linspace(0,Mmax,100),linspace(0,0,100));
+            
+            % Point D
+            [MD,ind] = max(M);
+            PD = P(ind);
+            
+            % Point C
+            [~,PC] = id.findIntersection(MB*ones(1,100),linspace(-0.1*PA,-PA,100));
+            
+            % Beam-Column Interaction
+            P = [PA PC PD  0]*Pn_over_Pno;
+            M = [ 0 MB (1-Pn_over_Pno)*MB+Pn_over_Pno*MD MB];
         end
     end
 
