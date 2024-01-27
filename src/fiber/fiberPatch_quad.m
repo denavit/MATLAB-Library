@@ -130,7 +130,7 @@ classdef fiberPatch_quad < fiberPatch
             y = [obj.yI obj.yJ obj.yK obj.yL obj.yI];
             plot(x,y,'k-','LineWidth',lineWidth);
         end
-        function [nfIJ,nfJK] = localFiberDiscretization3d(obj,sfy,sfz)
+        function [nfIJ,nfJK] = localFiberDiscretization3d(obj,sfz,sfy)
             nfIJ = ceil(max([1 ...
                 abs(obj.zI-obj.zJ)/sfz abs(obj.yI-obj.yJ)/sfy ...
                 abs(obj.zK-obj.zL)/sfz abs(obj.yK-obj.yL)/sfy]));
